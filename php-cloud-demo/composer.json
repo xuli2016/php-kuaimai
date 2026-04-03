@@ -1,0 +1,22 @@
+{
+    "name": "kuaimai/php-cloud-demo",
+    "description": "Kuaimai Cloud Print SDK PHP Demo",
+    "type": "project",
+    "require": {
+        "php": ">=8.0",
+        "kuaimai/php-kuaimai-core": "*"
+    },
+    "repositories": [
+        {
+            "type": "path",
+            "url": "../php-kuaimai-core"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "CloudExample\\": "src/"
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
