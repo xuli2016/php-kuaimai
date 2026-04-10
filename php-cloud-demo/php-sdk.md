@@ -93,15 +93,15 @@ $resp = $client->getAcsResponse($statusReq);
 | [BindDeviceRequest](#1-binddevicerequest---绑定设备) | 绑定设备 适用机型：所有快麦机型 |
 | [UnbindDeviceRequest](#2-unbinddevicerequest---解绑设备) | 解绑设备 适用机型：所有快麦机型 |
 | [QueryDeviceStatusRequest](#3-querydevicestatusrequest---查询设备状态) | 查询设备状态: 所有快麦机型 |
-| [TsplTemplatePrintRequest](#4-tspltemplateprintrequest---标签模版打印间隙纸) | 标签模版-间隙纸打印 适用机型:KM118系列，KME31系列，KME41系列，KME20系列，KMSX系列 |
-| [EscTemplatePrintRequest](#5-esctemplateprintrequest---小票模版打印连续纸) | 小票模版-连续纸打印 适用机型:KM118系列，KME31系列，KME41系列，KME20系列 |
-| [TsplTemplateWriteRequest](#6-tspltemplatewriterequest---小票模版打印间隙纸) | 小票模版-间隙纸打印 适用机型:KM118系列，KME31系列，KME41系列，KME20系列 |
-| [TsplXmlWriteRequest](#7-tsplxmlwriterequest---自定义-xml-打印间隙纸) | 自定义xml打印-间隙纸 适用机型:KM118系列，KME31系列，KME41系列，KME20系列 |
-| [EscXmlWriteRequest](#8-escxmlwriterequest---自定义-xml-打印连续纸) | 自定义xml打印-连续纸 适用机型:KM118系列，KME31系列，KME41系列，KME20系列,KMDP系列，KMUP系列 |
-| [TsplImageRequest](#9-tsplimagerequest---图片直接打印间隙纸) | 图片直接打印-间隙纸打印 适用机型:KM118系列，KME31系列，KME41系列 |
-| [EscImageRequest](#10-escimagerequest---图片直接打印连续纸) | 图片直接打印-连续纸打印 适用机型：KM118系列，KME31系列，KME41系列 |
-| [TsplPdfPrintRequest](#11-tsplpdfprintrequest---pdf-直接打印间隙纸) | pdf直接打印-间隙纸 适用机型:KM118系列，KME31系列，KME41系列 |
-| [EscPdfPrintRequest](#12-escpdfprintrequest---pdf-直接打印连续纸) | pdf直接打印-连续纸 适用机型:KM118系列，KME31系列，KME41系列 |
+| [TsplTemplatePrintRequest](#4-tspltemplateprintrequest---标签模版打印（间隙纸）) | 标签模版-间隙纸打印 适用机型:KM118系列，KME31系列，KME41系列，KME20系列，KMSX系列 |
+| [EscTemplatePrintRequest](#5-esctemplateprintrequest---小票模版打印（连续纸）) | 小票模版-连续纸打印 适用机型:KM118系列，KME31系列，KME41系列，KME20系列 |
+| [TsplTemplateWriteRequest](#6-tspltemplatewriterequest---小票模版打印（间隙纸）) | 小票模版-间隙纸打印 适用机型:KM118系列，KME31系列，KME41系列，KME20系列 |
+| [TsplXmlWriteRequest](#7-tsplxmlwriterequest---自定义-xml-打印（间隙纸）) | 自定义xml打印-间隙纸 适用机型:KM118系列，KME31系列，KME41系列，KME20系列 |
+| [EscXmlWriteRequest](#8-escxmlwriterequest---自定义-xml-打印（连续纸）) | 自定义xml打印-连续纸 适用机型:KM118系列，KME31系列，KME41系列，KME20系列,KMDP系列，KMUP系列 |
+| [TsplImageRequest](#9-tsplimagerequest---图片直接打印（间隙纸）) | 图片直接打印-间隙纸打印 适用机型:KM118系列，KME31系列，KME41系列 |
+| [EscImageRequest](#10-escimagerequest---图片直接打印（连续纸）) | 图片直接打印-连续纸打印 适用机型：KM118系列，KME31系列，KME41系列 |
+| [TsplPdfPrintRequest](#11-tsplpdfprintrequest---pdf-直接打印（间隙纸）) | pdf直接打印-间隙纸 适用机型:KM118系列，KME31系列，KME41系列 |
+| [EscPdfPrintRequest](#12-escpdfprintrequest---pdf-直接打印（连续纸）) | pdf直接打印-连续纸 适用机型:KM118系列，KME31系列，KME41系列 |
 | [ResultRequest](#13-resultrequest---打印任务结果查询) | 打印任务结果查询 适用机型：KM118系列，KME31系列，KME41系列，KME20系列 |
 | [BroadcastRequest](#14-broadcastrequest---语音播报) | 语言播报 适用机型：KM118MGL,KME31GP |
 | [CancelJobRequest](#15-canceljobrequest---取消待打印任务) | 取消待打印任务 适用机型：KM118系列，KME31系列，KME41系列，KME20系列 |
@@ -149,13 +149,10 @@ $resp = $client->getAcsResponse($bindReq);
 
 #### 错误码
 
-| code | message | 描述 |
+| code | 描述 | 处理方式 |
 | --- | --- | --- |
-| 1000 | success | 成功 |
-| 1001 | sn not found | 设备序列号不存在 |
-| 1002 | device already bindName | 设备已绑定 |
-| 1003 | device key error | 设备密钥错误 |
-| 1004 | param error | 参数错误 |
+| 4001 | 该序列号不存在或未激活 | 检查序列号是否和底部或自检页上一致；如果是wifi机型检查是否蓝灯配网是否成功；如果是4G机型检查是否开机 |
+| 4009 | 设备密钥不正确 | 设备密钥在机器底部，检查输入是否一致 |
 
 ---
 
@@ -184,13 +181,10 @@ $resp = $client->getAcsResponse($unbindReq);
 
 #### 错误码
 
-| code | message | 描述 |
+| code | 描述 | 处理方式 |
 | --- | --- | --- |
-| 1000 | success | 成功 |
-| 1001 | sn not found | 设备序列号不存在 |
-| 1003 | device key error | 设备密钥错误 |
-| 1004 | param error | 参数错误 |
-| 1005 | device not bindName | 设备未绑定 |
+| 4001 | 该序列号不存在或未激活 | 检查序列号是否和底部或自检页上一致；如果是wifi机型检查是否蓝灯配网是否成功；如果是4G机型检查是否开机 |
+| 4009 | 设备密钥不正确 | 设备密钥在机器底部，检查输入是否一致 |
 
 ---
 
@@ -241,12 +235,7 @@ $resp = $client->getAcsResponse($statusReq);
 }
 ```
 
-#### 错误码
 
-| code | message | 描述 |
-| --- | --- | --- |
-| 1000 | success | 成功 |
-| 1004 | param error | 参数错误 |
 
 ---
 
@@ -283,14 +272,14 @@ $resp = $client->getAcsResponse($tsplTplReq);
 
 #### 错误码
 
-| code | message | 描述 |
+| code | 描述 | 处理方式 |
 | --- | --- | --- |
-| 2000 | success | 成功 |
-| 2001 | device offline | 设备离线 |
-| 2002 | device not bindName | 设备未绑定 |
-| 2003 | template not found | 模板不存在 |
-| 2004 | param error | 参数错误 |
-| 2005 | system error | 系统错误 |
+| 4001 | 该序列号不存在或未激活 | 检查序列号是否和底部或自检页上一致；如果是wifi机型检查是否蓝灯配网是否成功；如果是4G机型检查是否开机 |
+| 4005 | 设备离线 | 如果是wifi机型检查是否蓝灯配网是否成功；如果是4G机型检查是否开机 |
+| 6009 | 动态渲染数据结构错误 | 检查renderDataArray参数的数据结构 |
+| 6022 | 动态批量渲染数量过大 | 控制动态批量渲染数量小于等于50 |
+| 6015 | 无权限模版访问 | 检查模版id是否为接口调用appId下新建的 |
+| 6010 | 模版类型不匹配 | 检查模版id是否为标签模版，如果使用了小票模版id会出现该错误 |
 
 ---
 
@@ -325,14 +314,14 @@ $resp = $client->getAcsResponse($escTplReq);
 
 #### 错误码
 
-| code | message | 描述 |
+| code | 描述 | 处理方式 |
 | --- | --- | --- |
-| 2000 | success | 成功 |
-| 2001 | device offline | 设备离线 |
-| 2002 | device not bindName | 设备未绑定 |
-| 2003 | template not found | 模板不存在 |
-| 2004 | param error | 参数错误 |
-| 2005 | system error | 系统错误 |
+| 4001 | 该序列号不存在或未激活 | 检查序列号是否和底部或自检页上一致；如果是wifi机型检查是否蓝灯配网是否成功；如果是4G机型检查是否开机 |
+| 4005 | 设备离线 | 如果是wifi机型检查是否蓝灯配网是否成功；如果是4G机型检查是否开机 |
+| 6009 | 动态渲染数据结构错误 | 检查renderDataArray参数的数据结构 |
+| 6022 | 动态批量渲染数量过大 | 控制动态批量渲染数量小于等于50 |
+| 6015 | 无权限模版访问 | 检查模版id是否为接口调用appId下新建的 |
+| 6010 | 模版类型不匹配 | 检查模版id是否为标签模版，如果使用了小票模版id会出现该错误 |
 
 ---
 
@@ -365,14 +354,13 @@ $resp = $client->getAcsResponse($tsplWriteReq);
 
 #### 错误码
 
-| code | message | 描述 |
+| code | 描述 | 处理方式 |
 | --- | --- | --- |
-| 2000 | success | 成功 |
-| 2001 | device offline | 设备离线 |
-| 2002 | device not bindName | 设备未绑定 |
-| 2003 | template not found | 模板不存在 |
-| 2004 | param error | 参数错误 |
-| 2005 | system error | 系统错误 |
+| 4001 | 该序列号不存在或未激活 | 检查序列号是否和底部或自检页上一致；如果是wifi机型检查是否蓝灯配网是否成功；如果是4G机型检查是否开机 |
+| 4005 | 设备离线 | 如果是wifi机型检查是否蓝灯配网是否成功；如果是4G机型检查是否开机 |
+| 6009 | 动态渲染数据结构错误 | 检查renderDataArray参数的数据结构 |
+| 6015 | 无权限模版访问 | 检查模版id是否为接口调用appId下新建的 |
+| 6010 | 模版类型不匹配 | 检查模版id是否为小票模版，如果使用了标签模版id会出现该错误 |
 
 ---
 
@@ -405,13 +393,11 @@ $resp = $client->getAcsResponse($tsplXmlReq);
 
 #### 错误码
 
-| code | message | 描述 |
+| code | 描述 | 处理方式 |
 | --- | --- | --- |
-| 2000 | success | 成功 |
-| 2001 | device offline | 设备离线 |
-| 2002 | device not bindName | 设备未绑定 |
-| 2004 | param error | 参数错误 |
-| 2005 | system error | 系统错误 |
+| 4001 | 该序列号不存在或未激活 | 检查序列号是否和底部或自检页上一致；如果是wifi机型检查是否蓝灯配网是否成功；如果是4G机型检查是否开机 |
+| 4005 | 设备离线 | 如果是wifi机型检查是否蓝灯配网是否成功；如果是4G机型检查是否开机 |
+| 6024 | xml数据过大 | 如果是xml数组打印，数组长度控制在小于或等于20 |
 
 ---
 
@@ -443,13 +429,10 @@ $resp = $client->getAcsResponse($escXmlReq);
 
 #### 错误码
 
-| code | message | 描述 |
+| code | 描述 | 处理方式 |
 | --- | --- | --- |
-| 2000 | success | 成功 |
-| 2001 | device offline | 设备离线 |
-| 2002 | device not bindName | 设备未绑定 |
-| 2004 | param error | 参数错误 |
-| 2005 | system error | 系统错误 |
+| 4001 | 该序列号不存在或未激活 | 检查序列号是否和底部或自检页上一致；如果是wifi机型检查是否蓝灯配网是否成功；如果是4G机型检查是否开机 |
+| 4005 | 设备离线 | 如果是wifi机型检查是否蓝灯配网是否成功；如果是4G机型检查是否开机 |
 
 ---
 
@@ -483,13 +466,11 @@ $resp = $client->getAcsResponse($tsplImgReq);
 
 #### 错误码
 
-| code | message | 描述 |
+| code | 描述 | 处理方式 |
 | --- | --- | --- |
-| 2000 | success | 成功 |
-| 2001 | device offline | 设备离线 |
-| 2002 | device not bindName | 设备未绑定 |
-| 2004 | param error | 参数错误 |
-| 2005 | system error | 系统错误 |
+| 4001 | 该序列号不存在或未激活 | 检查序列号是否和底部或自检页上一致；如果是wifi机型检查是否蓝灯配网是否成功；如果是4G机型检查是否开机 |
+| 4005 | 设备离线 | 如果是wifi机型检查是否蓝灯配网是否成功；如果是4G机型检查是否开机 |
+| 6019 | 打印内容过大 | 减少打印数据的大小，控制在100KB以内 |
 
 ---
 
@@ -521,13 +502,11 @@ $resp = $client->getAcsResponse($escImgReq);
 
 #### 错误码
 
-| code | message | 描述 |
+| code | 描述 | 处理方式 |
 | --- | --- | --- |
-| 2000 | success | 成功 |
-| 2001 | device offline | 设备离线 |
-| 2002 | device not bindName | 设备未绑定 |
-| 2004 | param error | 参数错误 |
-| 2005 | system error | 系统错误 |
+| 4001 | 该序列号不存在或未激活 | 检查序列号是否和底部或自检页上一致；如果是wifi机型检查是否蓝灯配网是否成功；如果是4G机型检查是否开机 |
+| 4005 | 设备离线 | 如果是wifi机型检查是否蓝灯配网是否成功；如果是4G机型检查是否开机 |
+| 6019 | 打印内容过大 | 减少打印数据的大小，控制在100KB以内 |
 
 ---
 
@@ -571,13 +550,11 @@ $resp = $client->tsplPdfsPrint($tsplPdfReq);
 
 #### 错误码
 
-| code | message | 描述 |
+| code | 描述 | 处理方式 |
 | --- | --- | --- |
-| 2000 | success | 成功 |
-| 2001 | device offline | 设备离线 |
-| 2002 | device not bindName | 设备未绑定 |
-| 2004 | param error | 参数错误 |
-| 2005 | system error | 系统错误 |
+| 4001 | 该序列号不存在或未激活 | 检查序列号是否和底部或自检页上一致；如果是wifi机型检查是否蓝灯配网是否成功；如果是4G机型检查是否开机 |
+| 4005 | 设备离线 | 如果是wifi机型检查是否蓝灯配网是否成功；如果是4G机型检查是否开机 |
+| 6019 | 打印内容过大 | 减少打印数据的大小，控制在100KB以内 |
 
 ---
 
@@ -619,13 +596,11 @@ $resp = $client->escPdfsPrint($escPdfReq);
 
 #### 错误码
 
-| code | message | 描述 |
+| code | 描述 | 处理方式 |
 | --- | --- | --- |
-| 2000 | success | 成功 |
-| 2001 | device offline | 设备离线 |
-| 2002 | device not bindName | 设备未绑定 |
-| 2004 | param error | 参数错误 |
-| 2005 | system error | 系统错误 |
+| 4001 | 该序列号不存在或未激活 | 检查序列号是否和底部或自检页上一致；如果是wifi机型检查是否蓝灯配网是否成功；如果是4G机型检查是否开机 |
+| 4005 | 设备离线 | 如果是wifi机型检查是否蓝灯配网是否成功；如果是4G机型检查是否开机 |
+| 6019 | 打印内容过大 | 减少打印数据的大小，控制在100KB以内 |
 
 ---
 
@@ -689,6 +664,13 @@ $resp = $client->getAcsResponse($resultReq);
 }
 ```
 
+#### 错误码
+
+| code | 描述 | 处理方式 |
+| --- | --- | --- |
+| 6026 | 打印结果查询超过了限制 | 减少单次查询的jobId的数量；控制在小于或等于50 |
+| 6021 | 该序列号查询过于频繁 | 该序列号的任务结果稍后再进行查询；同一个序列号每秒钟最多查询一次 |
+
 ---
 
 ### 14. BroadcastRequest - 语音播报
@@ -718,13 +700,11 @@ $resp = $client->getAcsResponse($broadcastReq);
 
 #### 错误码
 
-| code | message | 描述 |
+| code | 描述 | 处理方式 |
 | --- | --- | --- |
-| 2000 | success | 成功 |
-| 2001 | device offline | 设备离线 |
-| 2002 | device not bindName | 设备未绑定 |
-| 2004 | param error | 参数错误 |
-| 2005 | system error | 系统错误 |
+| 6036 | 语言播报内容超过了限制 | 减少语言播报的内容长度；控制在小于或等于50个字符 |
+| 6035 | 该机型不支持语言播报 | 使用支持语言播报的机型 |
+| 4005 | 设备离线 | 如果是wifi机型检查是否蓝灯配网是否成功；如果是4G机型检查是否开机 |
 
 ---
 
@@ -749,15 +729,7 @@ $resp = $client->getAcsResponse($cancelReq);
 | --- | --- | --- | --- |
 | sn | String | 是 | 设备序列号 |
 
-#### 错误码
 
-| code | message | 描述 |
-| --- | --- | --- |
-| 2000 | success | 成功 |
-| 2001 | device offline | 设备离线 |
-| 2002 | device not bindName | 设备未绑定 |
-| 2004 | param error | 参数错误 |
-| 2005 | system error | 系统错误 |
 
 ---
 
@@ -782,13 +754,7 @@ $resp = $client->getAcsResponse($req);
 | --- | --- | --- | --- |
 | imei | String | 是 | 设备 IMEI |
 
-#### 错误码
 
-| code | message | 描述 |
-| --- | --- | --- |
-| 2000 | success | 成功 |
-| 2004 | param error | 参数错误 |
-| 2005 | system error | 系统错误 |
 
 ---
 
@@ -815,13 +781,7 @@ $resp = $client->getAcsResponse($req);
 | imei | String | 是 | 设备 IMEI |
 | code | String | 是 | 通过 GetCainiaoCodeRequest 获取的 code |
 
-#### 错误码
 
-| code | message | 描述 |
-| --- | --- | --- |
-| 2000 | success | 成功 |
-| 2004 | param error | 参数错误 |
-| 2005 | system error | 系统错误 |
 
 ---
 
@@ -848,14 +808,7 @@ $resp = $client->getAcsResponse($req);
 | imei | String | 是 | 设备 IMEI |
 | imageBase64Data | String | 是 | 图片 Base64 编码字符串 |
 
-#### 错误码
 
-| code | message | 描述 |
-| --- | --- | --- |
-| 2000 | success | 成功 |
-| 2001 | device offline | 设备离线 |
-| 2004 | param error | 参数错误 |
-| 2005 | system error | 系统错误 |
 
 ---
 
@@ -1113,19 +1066,18 @@ ESC XML 指令用于连续纸（小票纸）打印，通过 `EscXmlWriteRequest`
 
 ## 全局错误码
 
-| code | message | 描述 |
+| code | 描述 | 处理方式 |
 | --- | --- | --- |
-| 1000 | success | 成功 |
-| 1001 | sn not found | 设备序列号不存在 |
-| 1002 | device already bindName | 设备已绑定 |
-| 1003 | device key error | 设备密钥错误 |
-| 1004 | param error | 参数错误 |
-| 1005 | device not bindName | 设备未绑定 |
-| 2000 | success | 成功 |
-| 2001 | device offline | 设备离线 |
-| 2002 | device not bindName | 设备未绑定 |
-| 2003 | template not found | 模板不存在 |
-| 2004 | param error / 异常 | 参数错误或异常 |
-| 2005 | system error | 系统错误 |
-| 2006 | waiting | 等待打印中 |
-| 2007 | print failed | 打印失败 |
+| 4001 | 该序列号不存在或未激活 | 检查序列号是否和底部或自检页上一致；如果是wifi机型检查是否蓝灯配网是否成功；如果是4G机型检查是否开机 |
+| 4005 | 设备离线 | 如果是wifi机型检查是否蓝灯配网是否成功；如果是4G机型检查是否开机 |
+| 4009 | 设备密钥不正确 | 设备密钥在机器底部，检查输入是否一致 |
+| 6009 | 动态渲染数据结构错误 | 检查renderDataArray参数的数据结构 |
+| 6010 | 模版类型不匹配 | 检查模版id是否与打印类型对应 |
+| 6015 | 无权限模版访问 | 检查模版id是否为接口调用appId下新建的 |
+| 6019 | 打印内容过大 | 减少打印数据的大小，控制在100KB以内 |
+| 6021 | 该序列号查询过于频繁 | 该序列号的任务结果稍后再进行查询；同一个序列号每秒钟最多查询一次 |
+| 6022 | 动态批量渲染数量过大 | 控制动态批量渲染数量小于等于50 |
+| 6024 | xml数据过大 | 如果是xml数组打印，数组长度控制在小于或等于20 |
+| 6026 | 打印结果查询超过了限制 | 减少单次查询的jobId的数量；控制在小于或等于50 |
+| 6035 | 该机型不支持语言播报 | 使用支持语言播报的机型 |
+| 6036 | 语言播报内容超过了限制 | 减少语言播报的内容长度；控制在小于或等于50个字符 |
