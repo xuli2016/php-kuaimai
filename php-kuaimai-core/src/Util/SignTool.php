@@ -28,10 +28,10 @@ class SignTool
      * Algorithm:
      * 1. Filter: skip params where key or value is blank
      * 2. Sort keys alphabetically
-     * 3. Concatenate: secret + k1v1k2v2... + secret
+     * 3. Concatenate: appSecret + k1v1k2v2... + appSecret
      * 4. MD5 → lowercase hex
      */
-    public static function createSign(array $params, string $secret): string
+    public static function createSign(array $params, string $appSecret): string
     {
         // Filter blank keys/values
         $filtered = [];
@@ -47,12 +47,12 @@ class SignTool
         // Sort by key
         ksort($filtered);
 
-        // Build string: secret + sorted(k+v pairs) + secret
-        $sb = $secret;
+        // Build string: appSecret + sorted(k+v pairs) + appSecret
+        $sb = $appSecret;
         foreach ($filtered as $k => $v) {
             $sb .= $k . $v;
         }
-        $sb .= $secret;
+        $sb .= $appSecret;
 
         return md5($sb);
     }

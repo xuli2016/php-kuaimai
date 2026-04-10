@@ -12,8 +12,8 @@
 
 前往 [快麦开放平台](https://open.iot.kuaimai.com/#/home) 注册应用，获取：
 
-- **accessKey**（应用 ID）
-- **secret**（应用密钥）
+- **appId**（应用 ID）
+- **appSecret**（应用密钥）
 
 ### 1.2 获取打印机信息
 
@@ -120,15 +120,15 @@ composer install
 **推荐方式：通过环境变量配置（避免密钥泄露）**
 
 ```bash
-export KUAIMAI_ACCESS_KEY="你的accessKey"
-export KUAIMAI_SECRET="你的secret"
+export KUAIMAI_APP_ID="你的appId"
+export KUAIMAI_APP_SECRET="你的appSecret"
 ```
 
 也可以直接修改 `CloudExample.php` 中的变量：
 
 ```php
-$accessKey = '你的accessKey';
-$secret    = '你的secret';
+$appId     = '你的appId';
+$appSecret = '你的appSecret';
 $testSn    = '你的打印机SN';
 ```
 
@@ -204,7 +204,7 @@ use Kuaimai\KuaimaiClient;
 use Kuaimai\Request\Tspl\TsplTemplatePrintRequest;
 
 // 1. 创建客户端（单例，整个进程只需创建一次）
-$client = KuaimaiClient::createClient('你的accessKey', '你的secret');
+$client = KuaimaiClient::createClient('你的appId', '你的appSecret');
 
 // 2. 构建请求对象，设置参数
 $req = new TsplTemplatePrintRequest();
@@ -422,8 +422,8 @@ class PrintController
     public function print()
     {
         $client = KuaimaiClient::createClient(
-            config('kuaimai.access_key'),
-            config('kuaimai.secret')
+            config('kuaimai.app_id'),
+            config('kuaimai.app_secret')
         );
 
         $req = new TsplTemplatePrintRequest();
@@ -471,7 +471,7 @@ curl -v http://cloud.kuaimai.com/api/cloud/device/exist
 
 ### Q5: 报错 "sign 验签失败"
 
-请检查 `accessKey` 和 `secret` 是否正确，注意前后不要有空格。
+请检查 `appId` 和 `appSecret` 是否正确，注意前后不要有空格。
 
 ---
 

@@ -40,19 +40,19 @@ class KuaimaiClient
 {
     private static ?KuaimaiClient $instance = null;
 
-    private string $accessKey;
-    private string $secret;
+    private string $appId;
+    private string $appSecret;
 
-    private function __construct(string $accessKey, string $secret)
+    private function __construct(string $appId, string $appSecret)
     {
-        $this->accessKey = $accessKey;
-        $this->secret    = $secret;
+        $this->appId     = $appId;
+        $this->appSecret = $appSecret;
     }
 
-    public static function createClient(string $accessKey, string $secret): self
+    public static function createClient(string $appId, string $appSecret): self
     {
         if (self::$instance === null) {
-            self::$instance = new self($accessKey, $secret);
+            self::$instance = new self($appId, $appSecret);
         }
         return self::$instance;
     }
@@ -74,14 +74,14 @@ class KuaimaiClient
      */
     private function post(string $endpoint, array $params): ResponseEnvelope
     {
-        $params['sign']    = SignTool::createSign($params, $this->secret);
+        $params['sign']    = SignTool::createSign($params, $this->appSecret);
         $params['version'] = Constants::VERSION;
         return RequestTool::postRequest(Constants::BASE_URL . $endpoint, $params);
     }
 
     private function baseMap(array $extra = []): array
     {
-        return array_merge(['appId' => $this->accessKey, 'timestamp' => $this->now()], $extra);
+        return array_merge(['appId' => $this->appId, 'timestamp' => $this->now()], $extra);
     }
 
     // -------------------------------------------------------------------------

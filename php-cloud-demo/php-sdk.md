@@ -10,9 +10,9 @@
 composer require kuaimai/php-kuaimai-core
 ```
 
-### 第二步：去快麦开放平台申请 appid 和 secret
+### 第二步：去快麦开放平台申请 appId 和 appSecret
 
-前往快麦开放平台申请应用的 `appid`（即 `accessKey`）和 `secret`。
+前往快麦开放平台申请应用的 `appId` 和 `appSecret`。
 
 ### 第三步：初始化客户端
 
@@ -20,7 +20,7 @@ composer require kuaimai/php-kuaimai-core
 <?php
 use Kuaimai\KuaimaiClient;
 
-$client = KuaimaiClient::createClient($accessKey, $secret);
+$client = KuaimaiClient::createClient($appId, $appSecret);
 ```
 
 ### 第四步：初始化入参

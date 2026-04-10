@@ -7,7 +7,7 @@
  * 对应 Java 版本 CloudExample.java
  *
  * 使用前提：
- *   1. 在 https://open.iot.kuaimai.com/#/home 注册应用，获取 accessKey 和 secret
+ *   1. 在 https://open.iot.kuaimai.com/#/home 注册应用，获取 appId 和 appSecret
  *   2. 获取打印机序列号 (SN)
  *   3. 建议将凭证存入环境变量，不要硬编码在代码中
  *
@@ -44,17 +44,17 @@ use Kuaimai\Request\Esc\EscPdfPrintRequest;
 // 凭证配置（推荐从环境变量读取，避免硬编码）
 // ---------------------------------------------------------------------------
 // 建议使用：
-//   export KUAIMAI_ACCESS_KEY="your_access_key"
-//   export KUAIMAI_SECRET="your_secret"
+//   export KUAIMAI_APP_ID="your_app_id"
+//   export KUAIMAI_APP_SECRET="your_app_secret"
 
-$accessKey = getenv('KUAIMAI_ACCESS_KEY') ?: '你的appId';
-$secret    = getenv('KUAIMAI_SECRET')     ?: '你的secret';
+$appId     = getenv('KUAIMAI_APP_ID')     ?: '你的appId';
+$appSecret = getenv('KUAIMAI_APP_SECRET') ?: '你的appSecret';
 $testSn    = '你的序列号';
 
 // ---------------------------------------------------------------------------
 // 初始化客户端
 // ---------------------------------------------------------------------------
-$client = KuaimaiClient::createClient($accessKey, $secret);
+$client = KuaimaiClient::createClient($appId, $appSecret);
 
 // ---------------------------------------------------------------------------
 // 1. 绑定设备
