@@ -477,7 +477,7 @@ curl -v http://cloud.kuaimai.com/api/cloud/device/exist
 
 ## 八、API 文档
 
-完整的接口参数说明请参考：[快麦开放平台文档](https://cloudprint.kuaimai.com/#/openDev)
+完整的接口参数说明请参考：[快麦开放平台文档](https://cloudprint.kuaimai.com/#/openDev),也可查看同目录下的php-sdk.md
 
 ## 九、技术支持
 

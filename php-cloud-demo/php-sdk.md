@@ -90,24 +90,24 @@ $resp = $client->getAcsResponse($statusReq);
 
 | API | 描述 |
 | --- | --- |
-| BindDeviceRequest | 绑定设备 适用机型：所有快麦机型 |
-| UnbindDeviceRequest | 解绑设备 适用机型：所有快麦机型 |
-| QueryDeviceStatusRequest | 查询设备状态: 所有快麦机型 |
-| TsplTemplatePrintRequest | 标签模版-间隙纸打印 适用机型:KM118系列，KME31系列，KME41系列，KME20系列，KMSX系列 |
-| EscTemplatePrintRequest | 小票模版-连续纸打印 适用机型:KM118系列，KME31系列，KME41系列，KME20系列 |
-| TsplTemplateWriteRequest | 小票模版-间隙纸打印 适用机型:KM118系列，KME31系列，KME41系列，KME20系列 |
-| TsplXmlWriteRequest | 自定义xml打印-间隙纸 适用机型:KM118系列，KME31系列，KME41系列，KME20系列 |
-| EscXmlWriteRequest | 自定义xml打印-连续纸 适用机型:KM118系列，KME31系列，KME41系列，KME20系列,KMDP系列，KMUP系列 |
-| TsplImageRequest | 图片直接打印-间隙纸打印 适用机型:KM118系列，KME31系列，KME41系列 |
-| EscImageRequest | 图片直接打印-连续纸打印 适用机型：KM118系列，KME31系列，KME41系列 |
-| TsplPdfPrintRequest | pdf直接打印-间隙纸 适用机型:KM118系列，KME31系列，KME41系列 |
-| EscPdfPrintRequest | pdf直接打印-连续纸 适用机型:KM118系列，KME31系列，KME41系列 |
-| ResultRequest | 打印任务结果查询 适用机型：KM118系列，KME31系列，KME41系列，KME20系列 |
-| BroadcastRequest | 语言播报 适用机型：KM118MGL,KME31GP |
-| CancelJobRequest | 取消待打印任务 适用机型：KM118系列，KME31系列，KME41系列，KME20系列 |
-| GetCainiaoCodeRequest | KM360C获取云打印机code，code有效期时间为5分钟 |
-| CainiaoBindRequest | KM360C绑定云打印机 |
-| CainiaoPrintRequest | KM360C图片打印 |
+| [BindDeviceRequest](#1-binddevicerequest---绑定设备) | 绑定设备 适用机型：所有快麦机型 |
+| [UnbindDeviceRequest](#2-unbinddevicerequest---解绑设备) | 解绑设备 适用机型：所有快麦机型 |
+| [QueryDeviceStatusRequest](#3-querydevicestatusrequest---查询设备状态) | 查询设备状态: 所有快麦机型 |
+| [TsplTemplatePrintRequest](#4-tspltemplateprintrequest---标签模版打印间隙纸) | 标签模版-间隙纸打印 适用机型:KM118系列，KME31系列，KME41系列，KME20系列，KMSX系列 |
+| [EscTemplatePrintRequest](#5-esctemplateprintrequest---小票模版打印连续纸) | 小票模版-连续纸打印 适用机型:KM118系列，KME31系列，KME41系列，KME20系列 |
+| [TsplTemplateWriteRequest](#6-tspltemplatewriterequest---小票模版打印间隙纸) | 小票模版-间隙纸打印 适用机型:KM118系列，KME31系列，KME41系列，KME20系列 |
+| [TsplXmlWriteRequest](#7-tsplxmlwriterequest---自定义-xml-打印间隙纸) | 自定义xml打印-间隙纸 适用机型:KM118系列，KME31系列，KME41系列，KME20系列 |
+| [EscXmlWriteRequest](#8-escxmlwriterequest---自定义-xml-打印连续纸) | 自定义xml打印-连续纸 适用机型:KM118系列，KME31系列，KME41系列，KME20系列,KMDP系列，KMUP系列 |
+| [TsplImageRequest](#9-tsplimagerequest---图片直接打印间隙纸) | 图片直接打印-间隙纸打印 适用机型:KM118系列，KME31系列，KME41系列 |
+| [EscImageRequest](#10-escimagerequest---图片直接打印连续纸) | 图片直接打印-连续纸打印 适用机型：KM118系列，KME31系列，KME41系列 |
+| [TsplPdfPrintRequest](#11-tsplpdfprintrequest---pdf-直接打印间隙纸) | pdf直接打印-间隙纸 适用机型:KM118系列，KME31系列，KME41系列 |
+| [EscPdfPrintRequest](#12-escpdfprintrequest---pdf-直接打印连续纸) | pdf直接打印-连续纸 适用机型:KM118系列，KME31系列，KME41系列 |
+| [ResultRequest](#13-resultrequest---打印任务结果查询) | 打印任务结果查询 适用机型：KM118系列，KME31系列，KME41系列，KME20系列 |
+| [BroadcastRequest](#14-broadcastrequest---语音播报) | 语言播报 适用机型：KM118MGL,KME31GP |
+| [CancelJobRequest](#15-canceljobrequest---取消待打印任务) | 取消待打印任务 适用机型：KM118系列，KME31系列，KME41系列，KME20系列 |
+| [GetCainiaoCodeRequest](#16-getcainiaocoderequest---获取菜鸟云打印机-code) | KM360C获取云打印机code，code有效期时间为5分钟 |
+| [CainiaoBindRequest](#17-cainiaobindrequest---菜鸟云打印机绑定) | KM360C绑定云打印机 |
+| [CainiaoPrintRequest](#18-cainiaoprintrequest---菜鸟云打印) | KM360C图片打印 |
 
 ---
 
