@@ -86,6 +86,7 @@ $resp = $client->getAcsResponse($statusReq);
 
 ---
 
+<a id="api-列表"></a>
 ## API 列表
 
 | API | 描述 |
@@ -154,6 +155,8 @@ $resp = $client->getAcsResponse($bindReq);
 | 4001 | 该序列号不存在或未激活 | 检查序列号是否和底部或自检页上一致；如果是wifi机型检查是否蓝灯配网是否成功；如果是4G机型检查是否开机 |
 | 4009 | 设备密钥不正确 | 设备密钥在机器底部，检查输入是否一致 |
 
+[↑ 返回API列表](#api-列表)
+
 ---
 
 ### 2. UnbindDeviceRequest - 解绑设备
@@ -185,6 +188,8 @@ $resp = $client->getAcsResponse($unbindReq);
 | --- | --- | --- |
 | 4001 | 该序列号不存在或未激活 | 检查序列号是否和底部或自检页上一致；如果是wifi机型检查是否蓝灯配网是否成功；如果是4G机型检查是否开机 |
 | 4009 | 设备密钥不正确 | 设备密钥在机器底部，检查输入是否一致 |
+
+[↑ 返回API列表](#api-列表)
 
 ---
 
@@ -235,7 +240,7 @@ $resp = $client->getAcsResponse($statusReq);
 }
 ```
 
-
+[↑ 返回API列表](#api-列表)
 
 ---
 
@@ -281,6 +286,8 @@ $resp = $client->getAcsResponse($tsplTplReq);
 | 6015 | 无权限模版访问 | 检查模版id是否为接口调用appId下新建的 |
 | 6010 | 模版类型不匹配 | 检查模版id是否为标签模版，如果使用了小票模版id会出现该错误 |
 
+[↑ 返回API列表](#api-列表)
+
 ---
 
 ### 5. EscTemplatePrintRequest - 小票模版打印（连续纸）
@@ -323,6 +330,8 @@ $resp = $client->getAcsResponse($escTplReq);
 | 6015 | 无权限模版访问 | 检查模版id是否为接口调用appId下新建的 |
 | 6010 | 模版类型不匹配 | 检查模版id是否为标签模版，如果使用了小票模版id会出现该错误 |
 
+[↑ 返回API列表](#api-列表)
+
 ---
 
 ### 6. TsplTemplateWriteRequest - 小票模版打印（间隙纸）
@@ -362,6 +371,8 @@ $resp = $client->getAcsResponse($tsplWriteReq);
 | 6015 | 无权限模版访问 | 检查模版id是否为接口调用appId下新建的 |
 | 6010 | 模版类型不匹配 | 检查模版id是否为小票模版，如果使用了标签模版id会出现该错误 |
 
+[↑ 返回API列表](#api-列表)
+
 ---
 
 ### 7. TsplXmlWriteRequest - 自定义 XML 打印（间隙纸）
@@ -399,6 +410,8 @@ $resp = $client->getAcsResponse($tsplXmlReq);
 | 4005 | 设备离线 | 如果是wifi机型检查是否蓝灯配网是否成功；如果是4G机型检查是否开机 |
 | 6024 | xml数据过大 | 如果是xml数组打印，数组长度控制在小于或等于20 |
 
+[↑ 返回API列表](#api-列表)
+
 ---
 
 ### 8. EscXmlWriteRequest - 自定义 XML 打印（连续纸）
@@ -433,6 +446,8 @@ $resp = $client->getAcsResponse($escXmlReq);
 | --- | --- | --- |
 | 4001 | 该序列号不存在或未激活 | 检查序列号是否和底部或自检页上一致；如果是wifi机型检查是否蓝灯配网是否成功；如果是4G机型检查是否开机 |
 | 4005 | 设备离线 | 如果是wifi机型检查是否蓝灯配网是否成功；如果是4G机型检查是否开机 |
+
+[↑ 返回API列表](#api-列表)
 
 ---
 
@@ -472,6 +487,8 @@ $resp = $client->getAcsResponse($tsplImgReq);
 | 4005 | 设备离线 | 如果是wifi机型检查是否蓝灯配网是否成功；如果是4G机型检查是否开机 |
 | 6019 | 打印内容过大 | 减少打印数据的大小，控制在100KB以内 |
 
+[↑ 返回API列表](#api-列表)
+
 ---
 
 ### 10. EscImageRequest - 图片直接打印（连续纸）
@@ -507,6 +524,8 @@ $resp = $client->getAcsResponse($escImgReq);
 | 4001 | 该序列号不存在或未激活 | 检查序列号是否和底部或自检页上一致；如果是wifi机型检查是否蓝灯配网是否成功；如果是4G机型检查是否开机 |
 | 4005 | 设备离线 | 如果是wifi机型检查是否蓝灯配网是否成功；如果是4G机型检查是否开机 |
 | 6019 | 打印内容过大 | 减少打印数据的大小，控制在100KB以内 |
+
+[↑ 返回API列表](#api-列表)
 
 ---
 
@@ -556,6 +575,8 @@ $resp = $client->tsplPdfsPrint($tsplPdfReq);
 | 4005 | 设备离线 | 如果是wifi机型检查是否蓝灯配网是否成功；如果是4G机型检查是否开机 |
 | 6019 | 打印内容过大 | 减少打印数据的大小，控制在100KB以内 |
 
+[↑ 返回API列表](#api-列表)
+
 ---
 
 ### 12. EscPdfPrintRequest - PDF 直接打印（连续纸）
@@ -601,6 +622,8 @@ $resp = $client->escPdfsPrint($escPdfReq);
 | 4001 | 该序列号不存在或未激活 | 检查序列号是否和底部或自检页上一致；如果是wifi机型检查是否蓝灯配网是否成功；如果是4G机型检查是否开机 |
 | 4005 | 设备离线 | 如果是wifi机型检查是否蓝灯配网是否成功；如果是4G机型检查是否开机 |
 | 6019 | 打印内容过大 | 减少打印数据的大小，控制在100KB以内 |
+
+[↑ 返回API列表](#api-列表)
 
 ---
 
@@ -671,6 +694,8 @@ $resp = $client->getAcsResponse($resultReq);
 | 6026 | 打印结果查询超过了限制 | 减少单次查询的jobId的数量；控制在小于或等于50 |
 | 6021 | 该序列号查询过于频繁 | 该序列号的任务结果稍后再进行查询；同一个序列号每秒钟最多查询一次 |
 
+[↑ 返回API列表](#api-列表)
+
 ---
 
 ### 14. BroadcastRequest - 语音播报
@@ -706,6 +731,8 @@ $resp = $client->getAcsResponse($broadcastReq);
 | 6035 | 该机型不支持语言播报 | 使用支持语言播报的机型 |
 | 4005 | 设备离线 | 如果是wifi机型检查是否蓝灯配网是否成功；如果是4G机型检查是否开机 |
 
+[↑ 返回API列表](#api-列表)
+
 ---
 
 ### 15. CancelJobRequest - 取消待打印任务
@@ -729,7 +756,7 @@ $resp = $client->getAcsResponse($cancelReq);
 | --- | --- | --- | --- |
 | sn | String | 是 | 设备序列号 |
 
-
+[↑ 返回API列表](#api-列表)
 
 ---
 
@@ -754,7 +781,7 @@ $resp = $client->getAcsResponse($req);
 | --- | --- | --- | --- |
 | imei | String | 是 | 设备 IMEI |
 
-
+[↑ 返回API列表](#api-列表)
 
 ---
 
@@ -781,7 +808,7 @@ $resp = $client->getAcsResponse($req);
 | imei | String | 是 | 设备 IMEI |
 | code | String | 是 | 通过 GetCainiaoCodeRequest 获取的 code |
 
-
+[↑ 返回API列表](#api-列表)
 
 ---
 
@@ -808,7 +835,7 @@ $resp = $client->getAcsResponse($req);
 | imei | String | 是 | 设备 IMEI |
 | imageBase64Data | String | 是 | 图片 Base64 编码字符串 |
 
-
+[↑ 返回API列表](#api-列表)
 
 ---
 
