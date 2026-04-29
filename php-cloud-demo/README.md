@@ -12,8 +12,8 @@
 
 前往 [快麦开放平台](https://open.iot.kuaimai.com/#/home) 注册应用，获取：
 
-- **appId**（应用 ID）
-- **appSecret**（应用密钥）
+- **appId**（系统对接中的appId）
+- **appSecret**（系统对接中的密钥）
 
 ### 1.2 获取打印机信息
 

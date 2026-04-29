@@ -2,13 +2,47 @@
 
 ## 对接流程
 
-### 第一步：通过 Composer 引入 `kuaimai/php-kuaimai-core` 包
+### 第一步：引入 `kuaimai/php-kuaimai-core` 包
 
-要求 PHP >= 8.0
+要求 PHP >= 8.0。
+
+> SDK **未发布到 Packagist 公共仓库**，请勿直接执行 `composer require kuaimai/php-kuaimai-core`，否则会报 `Package "kuaimai/php-kuaimai-core" not found`。
+
+随 demo 一同提供的 `php-kuaimai-core/` 目录就是 SDK 源码，请将其与你自己的项目目录放在**同一层级**，然后在你项目的 `composer.json` 中通过 `path` 仓库引入：
+
+```
+your-workspace/
+├── php-kuaimai-core/        # SDK 源码目录（不要改动）
+└── your-project/            # 你自己的项目
+    └── composer.json
+```
+
+`composer.json` 配置：
+
+```json
+{
+    "require": {
+        "php": ">=8.0",
+        "kuaimai/php-kuaimai-core": "*"
+    },
+    "repositories": [
+        {
+            "type": "path",
+            "url": "../php-kuaimai-core"
+        }
+    ],
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
+```
+
+随后执行：
 
 ```bash
-composer require kuaimai/php-kuaimai-core
+composer install
 ```
+
+> `url` 是指向 `php-kuaimai-core` 目录的相对/绝对路径，根据你的实际放置位置调整即可。
 
 ### 第二步：去快麦开放平台申请 appId 和 appSecret
 
@@ -41,17 +75,17 @@ $statusReq->sns = json_encode([$testSn]);
 $resp = $client->getAcsResponse($statusReq);
 ```
 
-### SDK 代码 GitHub 地址
+### SDK 代码目录说明
 
-- PHP 云打印 Demo：`php-cloud-demo`
-- PHP 核心 SDK：`php-kuaimai-core`（通过 Composer 引入）
+- PHP 云打印 Demo：`php-cloud-demo`（示例工程）
+- PHP 核心 SDK：`php-kuaimai-core`（通过 Composer `path` 仓库本地引入，未发布到 Packagist）
 
 ---
 
 ## PHP SDK 特别说明
 
 - PHP SDK 需要 **PHP >= 8.0**
-- 通过 Composer 安装：`composer require kuaimai/php-kuaimai-core`
+- SDK 通过 Composer `path` 仓库本地引入（详见上面「第一步」），**不要**使用 `composer require kuaimai/php-kuaimai-core`
 - PDF 打印功能需要安装 **Ghostscript**
 - PHP SDK 使用**公共属性赋值**（不是 Java 的 setter 方法）
 - 使用 `use` 语句引入对应的 Request 类，命名空间如下：
