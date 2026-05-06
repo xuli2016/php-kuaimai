@@ -87,7 +87,7 @@ $resp = $client->getAcsResponse($statusReq);
 - PHP SDK 需要 **PHP >= 8.0**
 - SDK 通过 Composer `path` 仓库本地引入（详见上面「第一步」），**不要**使用 `composer require kuaimai/php-kuaimai-core`
 - PDF 打印功能需要安装 **Ghostscript**
-- PHP SDK 使用**公共属性赋值**（不是 Java 的 setter 方法）
+- PHP SDK 使用**公共属性赋值**
 - 使用 `use` 语句引入对应的 Request 类，命名空间如下：
   - `Kuaimai\Request\Device\*`（设备相关：绑定、解绑、查询状态）
   - `Kuaimai\Request\Tspl\*`（标签打印相关）
@@ -617,7 +617,7 @@ $resp = $client->tsplPdfsPrint($tsplPdfReq);
 
 适用机型：KM118系列，KME31系列，KME41系列
 
-> **PHP 特有说明：** PHP 端使用 Ghostscript 实现 PDF 转图片转换（Java 端使用 PDFBox）。请确保服务器已安装 Ghostscript：
+> **PHP 特有说明：** PHP 端使用 Ghostscript 实现 PDF 转图片转换。请确保服务器已安装 Ghostscript：
 > - CentOS: `yum install -y ghostscript`
 > - Ubuntu: `apt-get install -y ghostscript`
 > - macOS: `brew install ghostscript`

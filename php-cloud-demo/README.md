@@ -22,12 +22,14 @@
 
 ### 1.3 服务器环境要求
 
-| 要求 | 说明 |
-|---|---|
-| PHP | >= 8.0 |
-| PHP 扩展 | curl、gd、zlib、json（json 为 PHP 8.0+ 内置） |
-| Composer | PHP 包管理工具 |
-| Ghostscript | **PDF 打印功能必需**，用于将 PDF 转换为图片 |
+
+| 要求          | 说明                                    |
+| ----------- | ------------------------------------- |
+| PHP         | >= 8.0                                |
+| PHP 扩展      | curl、gd、zlib、json（json 为 PHP 8.0+ 内置） |
+| Composer    | PHP 包管理工具                             |
+| Ghostscript | **PDF 打印功能必需**，用于将 PDF 转换为图片          |
+
 
 ### 1.4 服务器依赖安装
 
@@ -146,49 +148,59 @@ php CloudExample.php
 
 ### 3.1 设备管理
 
-| 功能 | Request 类 | 调用方式 | 说明 |
-|---|---|---|---|
-| 绑定设备 | `BindDeviceRequest` | `getAcsResponse` | 需要 sn + deviceKey |
-| 解绑设备 | `UnbindDeviceRequest` | `getAcsResponse` | 需要 sn + deviceKey |
-| 查询设备状态 | `QueryDeviceStatusRequest` | `getAcsResponse` | 支持批量，传 sns JSON 数组 |
-| 调整打印浓度 | `AdjustDeviceDensityRequest` | `getAcsResponse` | 范围 1-15，默认 8 |
+
+| 功能     | Request 类                    | 调用方式             | 说明                 |
+| ------ | ---------------------------- | ---------------- | ------------------ |
+| 绑定设备   | `BindDeviceRequest`          | `getAcsResponse` | 需要 sn + deviceKey  |
+| 解绑设备   | `UnbindDeviceRequest`        | `getAcsResponse` | 需要 sn + deviceKey  |
+| 查询设备状态 | `QueryDeviceStatusRequest`   | `getAcsResponse` | 支持批量，传 sns JSON 数组 |
+| 调整打印浓度 | `AdjustDeviceDensityRequest` | `getAcsResponse` | 范围 1-15，默认 8       |
+
 
 ### 3.2 TSPL 标签打印（间隙纸打印机）
 
-| 功能 | Request 类 | 调用方式 | 说明 |
-|---|---|---|---|
-| 模板打印 | `TsplTemplatePrintRequest` | `getAcsResponse` | 最常用，支持批量 + 本地渲染 |
-| 票据模板打印 | `TsplTemplateWriteRequest` | `getAcsResponse` | 单条数据渲染 |
-| XML 自定义打印 | `TsplXmlWriteRequest` | `getAcsResponse` | 传入自定义 XML 指令 |
-| 图片直接打印 | `TsplImageRequest` | `getAcsResponse` | 传入 Base64 图片 |
-| PDF 直接打印 | `TsplPdfPrintRequest` | `getAcsResponse` | 打印 PDF 第一页 |
-| PDF 多页打印 | `TsplPdfPrintRequest` | `tsplPdfsPrint` | 打印 PDF 所有页 |
+
+| 功能        | Request 类                  | 调用方式             | 说明              |
+| --------- | -------------------------- | ---------------- | --------------- |
+| 模板打印      | `TsplTemplatePrintRequest` | `getAcsResponse` | 最常用，支持批量 + 本地渲染 |
+| 票据模板打印    | `TsplTemplateWriteRequest` | `getAcsResponse` | 单条数据渲染          |
+| XML 自定义打印 | `TsplXmlWriteRequest`      | `getAcsResponse` | 传入自定义 XML 指令    |
+| 图片直接打印    | `TsplImageRequest`         | `getAcsResponse` | 传入 Base64 图片    |
+| PDF 直接打印  | `TsplPdfPrintRequest`      | `getAcsResponse` | 打印 PDF 第一页      |
+| PDF 多页打印  | `TsplPdfPrintRequest`      | `tsplPdfsPrint`  | 打印 PDF 所有页      |
+
 
 ### 3.3 ESC/POS 小票打印（连续纸打印机）
 
-| 功能 | Request 类 | 调用方式 | 说明 |
-|---|---|---|---|
-| 模板打印 | `EscTemplatePrintRequest` | `getAcsResponse` | 小票模板渲染打印 |
-| XML 自定义打印 | `EscXmlWriteRequest` | `getAcsResponse` | 传入自定义 XML 指令 |
-| 图片直接打印 | `EscImageRequest` | `getAcsResponse` | 传入 Base64 图片 |
-| PDF 直接打印 | `EscPdfPrintRequest` | `getAcsResponse` | 打印 PDF 第一页 |
-| PDF 多页打印 | `EscPdfPrintRequest` | `escPdfsPrint` | 打印 PDF 所有页 |
+
+| 功能        | Request 类                 | 调用方式             | 说明           |
+| --------- | ------------------------- | ---------------- | ------------ |
+| 模板打印      | `EscTemplatePrintRequest` | `getAcsResponse` | 小票模板渲染打印     |
+| XML 自定义打印 | `EscXmlWriteRequest`      | `getAcsResponse` | 传入自定义 XML 指令 |
+| 图片直接打印    | `EscImageRequest`         | `getAcsResponse` | 传入 Base64 图片 |
+| PDF 直接打印  | `EscPdfPrintRequest`      | `getAcsResponse` | 打印 PDF 第一页   |
+| PDF 多页打印  | `EscPdfPrintRequest`      | `escPdfsPrint`   | 打印 PDF 所有页   |
+
 
 ### 3.4 其他功能
 
-| 功能 | Request 类 | 调用方式 | 说明 |
-|---|---|---|---|
-| 查询打印结果 | `ResultRequest` | `getAcsResponse` | 通过 jobId 查询 |
-| 取消打印任务 | `CancelJobRequest` | `getAcsResponse` | 取消该打印机所有排队任务 |
-| 语音播报 | `BroadcastRequest` | `getAcsResponse` | 部分型号支持，音量 1-100 |
+
+| 功能     | Request 类          | 调用方式             | 说明              |
+| ------ | ------------------ | ---------------- | --------------- |
+| 查询打印结果 | `ResultRequest`    | `getAcsResponse` | 通过 jobId 查询     |
+| 取消打印任务 | `CancelJobRequest` | `getAcsResponse` | 取消该打印机所有排队任务    |
+| 语音播报   | `BroadcastRequest` | `getAcsResponse` | 部分型号支持，音量 1-100 |
+
 
 ### 3.5 KM360C 云打印机（菜鸟集成）
 
-| 功能 | Request 类 | 调用方式 | 说明 |
-|---|---|---|---|
-| 获取绑定码 | `GetCainiaoCodeRequest` | `getAcsResponse` | 有效期 5 分钟 |
-| 绑定云打印机 | `CainiaoBindRequest` | `getAcsResponse` | 需要 imei + code |
-| 云打印机图片打印 | `CainiaoPrintRequest` | `getAcsResponse` | 传入 Base64 图片 |
+
+| 功能       | Request 类               | 调用方式             | 说明             |
+| -------- | ----------------------- | ---------------- | -------------- |
+| 获取绑定码    | `GetCainiaoCodeRequest` | `getAcsResponse` | 有效期 5 分钟       |
+| 绑定云打印机   | `CainiaoBindRequest`    | `getAcsResponse` | 需要 imei + code |
+| 云打印机图片打印 | `CainiaoPrintRequest`   | `getAcsResponse` | 传入 Base64 图片   |
+
 
 ---
 
@@ -229,12 +241,14 @@ echo $resp->toJson();
 }
 ```
 
-| 字段 | 类型 | 说明 |
-|---|---|---|
-| status | bool | true=成功，false=失败 |
-| code | int | 100=成功，200=参数错误，600=不存在，700=非法操作，900=系统错误 |
-| message | string | 错误时的提示信息 |
-| data | mixed | 返回数据（不同接口返回不同内容） |
+
+| 字段      | 类型     | 说明                        |
+| ------- | ------ | ------------------------- |
+| status  | bool   | true=成功，false=失败          |
+| code    | int    | status为false时为对应接口的错误code |
+| message | string | 错误时的提示信息                  |
+| data    | mixed  | 返回数据（不同接口返回不同内容）          |
+
 
 ---
 
@@ -256,7 +270,8 @@ $resp = $client->getAcsResponse($req);
 echo $resp->toJson();
 ```
 
-> **`image` 参数说明：**
+> `**image` 参数说明：**
+>
 > - `true`：SDK 先从服务端获取模板，在本地渲染为图片，再发送给打印机。适合需要精确控制打印效果的场景。
 > - `false`：直接由服务端渲染并下发，更省本地资源。
 
