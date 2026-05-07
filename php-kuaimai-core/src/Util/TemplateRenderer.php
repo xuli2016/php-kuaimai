@@ -171,23 +171,27 @@ class TemplateRenderer
         $zhMap = [
             '楷体'     => ['SIMKAI.TTF', 'STKaiti.ttf', 'KaiTi.ttf', 'simkai.ttf', 'Songti.ttc', 'PingFang.ttc'],
             '仿宋'     => ['STFangsong.ttf', 'FangSong.ttf', 'simfang.ttf', 'Songti.ttc', 'PingFang.ttc'],
-            '宋体'     => ['Songti.ttc', 'STSong.ttf', 'simsun.ttc', 'PingFang.ttc'],
-            '黑体'     => ['STHeiti Light.ttc', 'STHeiti Medium.ttc', 'simhei.ttf', 'PingFang.ttc'],
+            '宋体'     => ['SIMSUN.TTC', 'simsun.ttc', 'Songti.ttc', 'STSong.ttf', 'PingFang.ttc'],
+            // Java AWT on macOS does not resolve the localized name "黑体" as SimHei here;
+            // it falls back through Dialog/CoreText. These candidates are closer than STHeiti Light.
+            '黑体'     => ['Arial Unicode.ttf', 'STHeiti Medium.ttc', 'SIMHEI.TTF', 'simhei.ttf', 'STHeiti Light.ttc', 'PingFang.ttc'],
             '微软雅黑' => ['Microsoft Yahei-1.ttf', 'msyh.ttc', 'PingFang.ttc'],
             '苹方'     => ['PingFang.ttc'],
             '华文楷体' => ['SIMKAI.TTF', 'STKaiti.ttf', 'Songti.ttc', 'PingFang.ttc'],
-            '华文宋体' => ['STSong.ttf', 'Songti.ttc', 'PingFang.ttc'],
-            '华文黑体' => ['STHeiti Light.ttc', 'PingFang.ttc'],
+            '华文宋体' => ['SIMSUN.TTC', 'simsun.ttc', 'STSong.ttf', 'Songti.ttc', 'PingFang.ttc'],
+            '华文黑体' => ['STHeiti Medium.ttc', 'STHeiti Light.ttc', 'SIMHEI.TTF', 'PingFang.ttc'],
         ];
         // English name aliases (case-insensitive key)
         $zhMapEn = [
             'kaiti'         => ['SIMKAI.TTF', 'STKaiti.ttf', 'KaiTi.ttf', 'simkai.ttf', 'Songti.ttc', 'PingFang.ttc'],
             'simkai'        => ['SIMKAI.TTF', 'STKaiti.ttf'],
             'stsong'        => ['STSong.ttf', 'Songti.ttc'],
-            'nsimson'       => ['Songti.ttc', 'PingFang.ttc'],
-            'nsimsum'       => ['Songti.ttc', 'PingFang.ttc'],
-            'nsimsun'       => ['Songti.ttc', 'PingFang.ttc'],
-            'simhei'        => ['STHeiti Light.ttc', 'simhei.ttf'],
+            'simsun'        => ['SIMSUN.TTC', 'simsun.ttc', 'Songti.ttc'],
+            'nsimson'       => ['SIMSUN.TTC', 'simsun.ttc', 'Songti.ttc', 'PingFang.ttc'],
+            'nsimsum'       => ['SIMSUN.TTC', 'simsun.ttc', 'Songti.ttc', 'PingFang.ttc'],
+            'nsimsun'       => ['SIMSUN.TTC', 'simsun.ttc', 'Songti.ttc', 'PingFang.ttc'],
+            'simhei'        => ['SIMHEI.TTF', 'simhei.ttf', 'STHeiti Medium.ttc', 'STHeiti Light.ttc'],
+            'dialog'        => ['Arial Unicode.ttf', 'STHeiti Medium.ttc', 'SIMSUN.TTC', 'PingFang.ttc'],
             'microsoftyahei'=> ['Microsoft Yahei-1.ttf', 'msyh.ttc', 'PingFang.ttc'],
             'microsoft yahei' => ['Microsoft Yahei-1.ttf', 'msyh.ttc', 'PingFang.ttc'],
             'pingfang'      => ['PingFang.ttc'],
@@ -301,7 +305,8 @@ class TemplateRenderer
     {
         $scaleX   = (float)($obj['scaleX'] ?? 1);
         $width    = (float)($obj['width']  ?? 24) * $rate * $scaleX;
-        $fontSize = (int)max(8, (float)($obj['fontSize'] ?? 12) * $rate * $scaleX);
+        $fontSize = (int)max(8, round((float)($obj['fontSize'] ?? 12) * $rate * $scaleX));
+        $drawFontSize = max(1, (int)round($fontSize * 0.75));
         $left     = (float)($obj['left']   ?? 0) * $rate;
         $top      = (float)($obj['top']    ?? 0) * $rate;
         $angle    = (float)($obj['angle']  ?? 0);
@@ -319,7 +324,7 @@ class TemplateRenderer
         $white    = imagecolorallocate($img, 255, 255, 255);
 
         // 换行
-        $lines = self::wrapLines($content, $fontPath, $fontSize, (int)$width);
+        $lines = self::wrapLines($content, $fontPath, $drawFontSize, (int)$width);
         if ($maxRows > 0) {
             $lines = array_slice($lines, 0, $maxRows);
         }
@@ -329,7 +334,7 @@ class TemplateRenderer
             $y += $fontSize;
 
             if ($fontPath && file_exists($fontPath)) {
-                $bbox  = imagettfbbox($fontSize, 0, $fontPath, $line);
+                $bbox  = imagettfbbox($drawFontSize, 0, $fontPath, $line);
                 $textW = abs($bbox[4] - $bbox[0]);
                 $x = match ($textAlign) {
                     'center' => (int)($left + ($width - $textW) / 2),
@@ -337,13 +342,12 @@ class TemplateRenderer
                     default  => (int)$left,
                 };
                 if ($reverse) {
-                    $bboxFull = imagettfbbox($fontSize, 0, $fontPath, $line);
+                    $bboxFull = imagettfbbox($drawFontSize, 0, $fontPath, $line);
                     $bw = abs($bboxFull[4] - $bboxFull[0]);
-                    $bh = $fontSize + 4;
                     imagefilledrectangle($img, $x, $y - $fontSize, $x + $bw, $y + 4, $black);
-                    imagettftext($img, $fontSize, (float)$angle, $x, $y, $white, $fontPath, $line);
+                    imagettftext($img, $drawFontSize, (float)$angle, $x, $y, $white, $fontPath, $line);
                 } else {
-                    imagettftext($img, $fontSize, (float)$angle, $x, $y, $black, $fontPath, $line);
+                    imagettftext($img, $drawFontSize, (float)$angle, $x, $y, $black, $fontPath, $line);
                 }
             } else {
                 // GD 内置字体 fallback
@@ -403,13 +407,18 @@ class TemplateRenderer
 
     private static function pasteQRCode(\GdImage $canvas, string $content, int $x, int $y, int $w, int $h): void
     {
+        if ($w <= 0 || $h <= 0) {
+            return;
+        }
+
         $options = new QROptions([
             'outputType'       => \chillerlan\QRCode\Output\QROutputInterface::GDIMAGE_PNG,
             'outputBase64'     => true,
             'imageTransparent' => false,
             'eccLevel'         => \chillerlan\QRCode\QRCode::ECC_M,
-            'scale'            => max(1, (int)ceil(max($w, $h) / 25)),
-            'margin'           => 0,
+            'scale'            => 1,
+            'addQuietzone'     => false,
+            'quietzoneSize'    => 0,
         ]);
         $b64 = (new QRCode($options))->render($content);
         $commaPos = strpos($b64, ',');
@@ -430,8 +439,24 @@ class TemplateRenderer
         $resized = imagecreatetruecolor($w, $h);
         $white   = imagecolorallocate($resized, 255, 255, 255);
         imagefill($resized, 0, 0, $white);
-        // Keep QR modules sharp instead of smoothing them with resampling.
-        imagecopyresized($resized, $qrImg, 0, 0, 0, 0, $w, $h, imagesx($qrImg), imagesy($qrImg));
+
+        $srcW = imagesx($qrImg);
+        $srcH = imagesy($qrImg);
+        $moduleSize = (int)floor(min($w / $srcW, $h / $srcH));
+        if ($moduleSize >= 1) {
+            $targetW = $srcW * $moduleSize;
+            $targetH = $srcH * $moduleSize;
+            $dstX = (int)round(($w - $targetW) / 2);
+            $dstY = (int)round(($h - $targetH) / 2);
+        } else {
+            $targetW = $w;
+            $targetH = $h;
+            $dstX = 0;
+            $dstY = 0;
+        }
+
+        // Match Java/ZXing behavior: keep modules on whole pixels and center leftovers.
+        imagecopyresized($resized, $qrImg, $dstX, $dstY, 0, 0, $targetW, $targetH, $srcW, $srcH);
         imagecopy($canvas, $resized, $x, $y, 0, 0, $w, $h);
     }
 
@@ -707,9 +732,9 @@ class TemplateRenderer
         $heightMm = (float)($tagConfig['height'] ?? 100);
         $printDir = (float)($tagConfig['printDirection'] ?? 0);
 
-        // Java: (Math.round(width)-1)*8 × (Math.round(height)-1)*8
-        $canvasW = (int)((round($widthMm)  - 1) * 8);
-        $canvasH = (int)((round($heightMm) - 1) * 8);
+        // Java SDK 1.3.2: Math.round(width * 8) × Math.round(height * 8)
+        $canvasW = max(1, (int)round($widthMm * 8));
+        $canvasH = max(1, (int)round($heightMm * 8));
 
         // rate 计算（对应 Java viewportTransform）
         $viewport   = self::parseJsonArray($templateInfo['viewportTransform'] ?? []);

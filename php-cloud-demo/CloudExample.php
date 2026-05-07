@@ -100,8 +100,8 @@ $tsplTplReq->renderDataArray = '[{"table_test":[{"key_test":"3449394"}]}]';
 $tsplTplReq->printTimes      = 1;
 $tsplTplReq->image           = true;
 
-// $resp = $client->getAcsResponse($tsplTplReq);
-// echo $resp->toJson() . PHP_EOL;
+$resp = $client->getAcsResponse($tsplTplReq);
+echo $resp->toJson() . PHP_EOL;
 
 // ---------------------------------------------------------------------------
 // 5. TSPL 小票模板打印（间隙纸）
