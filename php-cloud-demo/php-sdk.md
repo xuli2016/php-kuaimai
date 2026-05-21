@@ -86,6 +86,7 @@ $resp = $client->getAcsResponse($statusReq);
 
 - PHP SDK 需要 **PHP >= 8.0**
 - SDK 通过 Composer `path` 仓库本地引入（详见上面「第一步」），**不要**使用 `composer require kuaimai/php-kuaimai-core`
+- 模板打印使用 `image=true` 时会在本地渲染图片，需要正确安装 Composer 依赖，并启用 PHP 扩展 `curl`、`gd`、`zlib`、`json`；模板中包含二维码或条形码时，还需要能正常加载 `chillerlan/php-qrcode` 和 `picqer/php-barcode-generator`；模板中包含中文文字时，需要 GD 支持 FreeType，并安装可用中文字体
 - PDF 打印功能需要安装 **Ghostscript**
 - PHP SDK 使用**公共属性赋值**
 - 使用 `use` 语句引入对应的 Request 类，命名空间如下：
@@ -308,6 +309,118 @@ $resp = $client->getAcsResponse($tsplTplReq);
 | dpi | Number | 否 | 打印分辨率 |
 | imei | String | 否 | KM360C 设备的 IMEI |
 | printTimes | Number | 否 | 打印份数，默认1 |
+
+#### 本地渲染失败 / 文字空白排查
+
+当 `image=true` 时，SDK 会先获取模板并在当前 PHP 环境中本地渲染，再下发图片指令。如果返回类似以下错误，或打印结果只出现二维码/条形码、其他文字为空白，请优先检查本地渲染环境：
+
+```text
+模板本地渲染失败: 模板元素渲染失败: qrcode
+模板本地渲染失败: 模板元素渲染失败: barcode
+打印结果只有二维码/条形码，文字为空白
+```
+
+通常表示模板中的二维码或条形码元素在本地生成失败。常见原因包括：未执行 `composer install`、项目没有加载正确的 `vendor/autoload.php`、`chillerlan/php-qrcode` 或 `picqer/php-barcode-generator` 未安装、PHP 未启用 `gd` 或 GD 不支持 PNG。
+
+如果二维码/条形码能正常打印，但文字为空白，通常表示文本渲染环境异常。常见原因包括：GD 未启用 FreeType、服务器没有安装中文字体、PHP-FPM/容器无法读取字体目录，或模板字体名与服务器字体文件无法匹配。
+
+请在业务项目根目录执行以下命令检查环境：
+
+```bash
+composer show chillerlan/php-qrcode
+composer show picqer/php-barcode-generator
+php -m | grep -E "curl|gd|zlib|json|mbstring"
+php -r 'require "vendor/autoload.php"; echo "php=".PHP_VERSION.PHP_EOL; echo "gd=".(extension_loaded("gd")?"yes":"no").PHP_EOL; echo "imagettftext=".(function_exists("imagettftext")?"yes":"no").PHP_EOL; echo extension_loaded("gd") ? json_encode(gd_info(), JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES).PHP_EOL : ""; echo "QRCode=".(class_exists("chillerlan\\QRCode\\QRCode")?"yes":"no").PHP_EOL; echo "Barcode=".(class_exists("Picqer\\Barcode\\BarcodeGeneratorPNG")?"yes":"no").PHP_EOL;'
+```
+
+正常情况下应能看到：
+
+```text
+gd=yes
+"PNG Support":true
+"FreeType Support":true
+imagettftext=yes
+QRCode=yes
+Barcode=yes
+```
+
+如果 `QRCode=no` 或出现 `Class "chillerlan\QRCode\QRCode" not found`，请确认已在业务项目中执行 `composer install`，并且入口文件加载的是当前项目的 `vendor/autoload.php`。
+
+如果 `Barcode=no` 或出现 `Class "Picqer\Barcode\BarcodeGeneratorPNG" not found`，请确认 `picqer/php-barcode-generator` 已安装，并且入口文件加载的是当前项目的 `vendor/autoload.php`。
+
+如果 `gd=no` 或 `"PNG Support":false`，请安装/启用 `php-gd`，确认 GD 带 PNG 支持，并重启 PHP-FPM、Web 服务或容器。
+
+如果 `"FreeType Support":false` 或 `imagettftext=no`，请安装支持 FreeType 的 `php-gd` 版本，并重启 PHP-FPM、Web 服务或容器。
+
+如果文字为空白，请继续检查中文字体：
+
+```bash
+fc-list :lang=zh | head -20
+find /usr/share/fonts -type f \( -iname "*.ttf" -o -iname "*.ttc" -o -iname "*.otf" -o -iname "*.otc" \) | head -20
+```
+
+如果 `fc-list :lang=zh` 没有输出，请安装中文字体：
+
+```bash
+# Ubuntu/Debian
+apt-get install -y fonts-wqy-microhei fonts-wqy-zenhei fonts-noto-cjk
+
+# CentOS/RHEL
+yum install -y wqy-microhei-fonts wqy-zenhei-fonts
+```
+
+字体安装后刷新缓存并重启 PHP-FPM、Web 服务或容器：
+
+```bash
+fc-cache -fv
+```
+
+可以指定 SDK 扫描额外字体目录：
+
+```bash
+export KUAIMAI_FONT_DIRS=/usr/share/fonts:/usr/local/share/fonts:/path/to/fonts
+```
+
+如果运行在 PHP-FPM、Supervisor 或容器中，请把 `KUAIMAI_FONT_DIRS` 配置到对应服务环境变量中，不能只在当前 shell 中临时 `export`。
+
+可以单独测试 PHP/GD 是否能画中文：
+
+```bash
+php -r '$font="/usr/share/fonts/wqy-microhei/wqy-microhei.ttc"; $im=imagecreatetruecolor(500,120); $white=imagecolorallocate($im,255,255,255); $black=imagecolorallocate($im,0,0,0); imagefill($im,0,0,$white); var_dump(file_exists($font), is_readable($font)); var_dump(imagettftext($im,24,0,10,70,$black,$font,"客户：庆利服装厂 4XL码")); imagepng($im,"/tmp/font-test.png"); echo "/tmp/font-test.png".PHP_EOL;'
+```
+
+如果字体路径不同，请先用 `find /usr/share/fonts -type f -iname "*wqy*"` 查到实际字体文件后替换 `$font`。
+
+排查打印结果时，建议保存 SDK 本地渲染图片：
+
+```php
+putenv('KUAIMAI_RENDER_DEBUG_DIR=/tmp/kuaimai-render');
+```
+
+并确保目录可写：
+
+```bash
+mkdir -p /tmp/kuaimai-render
+chmod 777 /tmp/kuaimai-render
+```
+
+如果 `/tmp/kuaimai-render` 中生成的 PNG 本身文字为空白，说明问题在本地渲染环境；如果 PNG 正常但打印结果空白，请继续排查打印机下发和耗材设置。
+
+可以再单独测试二维码和条形码生成：
+
+```bash
+php -r 'require "vendor/autoload.php"; $o=new chillerlan\QRCode\QROptions(["outputType"=>chillerlan\QRCode\Output\QROutputInterface::GDIMAGE_PNG,"outputBase64"=>true]); echo substr((new chillerlan\QRCode\QRCode($o))->render("https://www.kuaimai.com"),0,22).PHP_EOL;'
+php -r 'require "vendor/autoload.php"; $g=new Picqer\Barcode\BarcodeGeneratorPNG(); echo "barcode render ok len=".strlen($g->getBarcode("1234567890", $g::TYPE_CODE_128)).PHP_EOL;'
+```
+
+正常输出应为：
+
+```text
+data:image/png;base64,
+barcode render ok len=...
+```
+
+若暂时无法修复本地环境，可以先设置 `$tsplTplReq->image = false`，改为服务端渲染后下发。
 
 #### 错误码
 

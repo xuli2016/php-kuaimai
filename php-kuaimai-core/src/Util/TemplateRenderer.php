@@ -171,42 +171,42 @@ class TemplateRenderer
         $zhMap = [
             '楷体'     => ['SIMKAI.TTF', 'STKaiti.ttf', 'KaiTi.ttf', 'simkai.ttf', 'Songti.ttc', 'PingFang.ttc'],
             '仿宋'     => ['STFangsong.ttf', 'FangSong.ttf', 'simfang.ttf', 'Songti.ttc', 'PingFang.ttc'],
-            '宋体'     => ['SIMSUN.TTC', 'simsun.ttc', 'Songti.ttc', 'STSong.ttf', 'PingFang.ttc'],
+            '宋体'     => ['SIMSUN.TTC', 'simsun.ttc', 'Songti.ttc', 'STSong.ttf', 'PingFang.ttc', 'wqy-zenhei.ttc', 'wqy-microhei.ttc'],
             // Java AWT on macOS does not resolve the localized name "黑体" as SimHei here;
             // it falls back through Dialog/CoreText. These candidates are closer than STHeiti Light.
-            '黑体'     => ['Arial Unicode.ttf', 'STHeiti Medium.ttc', 'SIMHEI.TTF', 'simhei.ttf', 'STHeiti Light.ttc', 'PingFang.ttc'],
-            '微软雅黑' => ['Microsoft Yahei-1.ttf', 'msyh.ttc', 'PingFang.ttc'],
-            '苹方'     => ['PingFang.ttc'],
+            '黑体'     => ['Arial Unicode.ttf', 'STHeiti Medium.ttc', 'SIMHEI.TTF', 'simhei.ttf', 'STHeiti Light.ttc', 'PingFang.ttc', 'wqy-microhei.ttc', 'wqy-zenhei.ttc'],
+            '微软雅黑' => ['Microsoft Yahei-1.ttf', 'msyh.ttc', 'PingFang.ttc', 'wqy-microhei.ttc', 'wqy-zenhei.ttc'],
+            '苹方'     => ['PingFang.ttc', 'wqy-microhei.ttc', 'wqy-zenhei.ttc'],
             '华文楷体' => ['SIMKAI.TTF', 'STKaiti.ttf', 'Songti.ttc', 'PingFang.ttc'],
-            '华文宋体' => ['SIMSUN.TTC', 'simsun.ttc', 'STSong.ttf', 'Songti.ttc', 'PingFang.ttc'],
-            '华文黑体' => ['STHeiti Medium.ttc', 'STHeiti Light.ttc', 'SIMHEI.TTF', 'PingFang.ttc'],
+            '华文宋体' => ['SIMSUN.TTC', 'simsun.ttc', 'STSong.ttf', 'Songti.ttc', 'PingFang.ttc', 'wqy-zenhei.ttc', 'wqy-microhei.ttc'],
+            '华文黑体' => ['STHeiti Medium.ttc', 'STHeiti Light.ttc', 'SIMHEI.TTF', 'simhei.ttf', 'PingFang.ttc', 'wqy-microhei.ttc', 'wqy-zenhei.ttc'],
         ];
         // English name aliases (case-insensitive key)
         $zhMapEn = [
             'kaiti'         => ['SIMKAI.TTF', 'STKaiti.ttf', 'KaiTi.ttf', 'simkai.ttf', 'Songti.ttc', 'PingFang.ttc'],
             'simkai'        => ['SIMKAI.TTF', 'STKaiti.ttf'],
             'stsong'        => ['STSong.ttf', 'Songti.ttc'],
-            'simsun'        => ['SIMSUN.TTC', 'simsun.ttc', 'Songti.ttc'],
-            'nsimson'       => ['SIMSUN.TTC', 'simsun.ttc', 'Songti.ttc', 'PingFang.ttc'],
-            'nsimsum'       => ['SIMSUN.TTC', 'simsun.ttc', 'Songti.ttc', 'PingFang.ttc'],
-            'nsimsun'       => ['SIMSUN.TTC', 'simsun.ttc', 'Songti.ttc', 'PingFang.ttc'],
-            'simhei'        => ['SIMHEI.TTF', 'simhei.ttf', 'STHeiti Medium.ttc', 'STHeiti Light.ttc'],
-            'dialog'        => ['Arial Unicode.ttf', 'STHeiti Medium.ttc', 'SIMSUN.TTC', 'PingFang.ttc'],
-            'microsoftyahei'=> ['Microsoft Yahei-1.ttf', 'msyh.ttc', 'PingFang.ttc'],
-            'microsoft yahei' => ['Microsoft Yahei-1.ttf', 'msyh.ttc', 'PingFang.ttc'],
-            'pingfang'      => ['PingFang.ttc'],
-            'pingfangsc'    => ['PingFang.ttc'],
-            'pingfang sc'   => ['PingFang.ttc'],
-            'heiti sc'      => ['STHeiti Light.ttc', 'PingFang.ttc'],
-            'songti sc'     => ['Songti.ttc', 'STSong.ttf'],
+            'simsun'        => ['SIMSUN.TTC', 'simsun.ttc', 'Songti.ttc', 'wqy-zenhei.ttc', 'wqy-microhei.ttc'],
+            'nsimson'       => ['SIMSUN.TTC', 'simsun.ttc', 'Songti.ttc', 'PingFang.ttc', 'wqy-zenhei.ttc', 'wqy-microhei.ttc'],
+            'nsimsum'       => ['SIMSUN.TTC', 'simsun.ttc', 'Songti.ttc', 'PingFang.ttc', 'wqy-zenhei.ttc', 'wqy-microhei.ttc'],
+            'nsimsun'       => ['SIMSUN.TTC', 'simsun.ttc', 'Songti.ttc', 'PingFang.ttc', 'wqy-zenhei.ttc', 'wqy-microhei.ttc'],
+            'simhei'        => ['SIMHEI.TTF', 'simhei.ttf', 'STHeiti Medium.ttc', 'STHeiti Light.ttc', 'wqy-microhei.ttc', 'wqy-zenhei.ttc'],
+            'dialog'        => ['Arial Unicode.ttf', 'STHeiti Medium.ttc', 'SIMSUN.TTC', 'PingFang.ttc', 'wqy-microhei.ttc', 'wqy-zenhei.ttc'],
+            'microsoftyahei'=> ['Microsoft Yahei-1.ttf', 'msyh.ttc', 'PingFang.ttc', 'wqy-microhei.ttc', 'wqy-zenhei.ttc'],
+            'microsoft yahei' => ['Microsoft Yahei-1.ttf', 'msyh.ttc', 'PingFang.ttc', 'wqy-microhei.ttc', 'wqy-zenhei.ttc'],
+            'pingfang'      => ['PingFang.ttc', 'wqy-microhei.ttc', 'wqy-zenhei.ttc'],
+            'pingfangsc'    => ['PingFang.ttc', 'wqy-microhei.ttc', 'wqy-zenhei.ttc'],
+            'pingfang sc'   => ['PingFang.ttc', 'wqy-microhei.ttc', 'wqy-zenhei.ttc'],
+            'heiti sc'      => ['STHeiti Light.ttc', 'PingFang.ttc', 'simhei.ttf', 'wqy-microhei.ttc', 'wqy-zenhei.ttc'],
+            'songti sc'     => ['Songti.ttc', 'STSong.ttf', 'wqy-zenhei.ttc', 'wqy-microhei.ttc'],
         ];
 
         if (isset($zhMap[$n])) {
-            return array_merge($zhMap[$n], self::defaultCandidates());
+            return array_values(array_unique(array_merge($zhMap[$n], self::defaultCandidates())));
         }
         $nLower = mb_strtolower($n);
         if (isset($zhMapEn[$nLower])) {
-            return array_merge($zhMapEn[$nLower], self::defaultCandidates());
+            return array_values(array_unique(array_merge($zhMapEn[$nLower], self::defaultCandidates())));
         }
 
         // 英文：尝试 "Name.ttf", "Name Bold.ttf", "Name.ttc" 等
@@ -226,7 +226,24 @@ class TemplateRenderer
 
     private static function defaultCandidates(): array
     {
-        return ['PingFang.ttc', 'Arial.ttf', 'Arial Unicode.ttf', 'Helvetica.ttc', 'Helvetica.ttf', 'Songti.ttc', 'STHeiti Light.ttc', 'DejaVuSans.ttf', 'NotoSansCJK-Regular.ttc'];
+        return [
+            'PingFang.ttc',
+            'Arial.ttf',
+            'Arial Unicode.ttf',
+            'Helvetica.ttc',
+            'Helvetica.ttf',
+            'Songti.ttc',
+            'STHeiti Light.ttc',
+            'SIMHEI.TTF',
+            'simhei.ttf',
+            'wqy-microhei.ttc',
+            'wqy-zenhei.ttc',
+            'NotoSansCJK-Regular.ttc',
+            'NotoSansCJK-Regular.otf',
+            'NotoSansCJKsc-Regular.otf',
+            'NotoSansCJKsc-Regular.ttf',
+            'DejaVuSans.ttf',
+        ];
     }
 
     private static function defaultFont(): ?string

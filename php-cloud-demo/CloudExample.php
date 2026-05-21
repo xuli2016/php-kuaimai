@@ -50,7 +50,6 @@ use Kuaimai\Request\Esc\EscPdfPrintRequest;
 $appId     = getenv('KUAIMAI_APP_ID')     ?: '你的appId';
 $appSecret = getenv('KUAIMAI_APP_SECRET') ?: '你的appSecret';
 $testSn    = '你的序列号';
-
 // ---------------------------------------------------------------------------
 // 初始化客户端
 // ---------------------------------------------------------------------------
@@ -95,7 +94,7 @@ echo $resp->toJson() . PHP_EOL;
 // ---------------------------------------------------------------------------
 $tsplTplReq = new TsplTemplatePrintRequest();
 $tsplTplReq->sn              = $testSn;
-$tsplTplReq->templateId      = 1634989639;
+$tsplTplReq->templateId      = 1634994453;
 $tsplTplReq->renderDataArray = '[{"table_test":[{"key_test":"3449394"}]}]';
 $tsplTplReq->printTimes      = 1;
 $tsplTplReq->image           = true;

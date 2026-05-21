@@ -3,7 +3,7 @@
         'name' => 'kuaimai/php-cloud-demo',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '5dac63a0eb7a0071d8e976f73fe37fa92a4f2a2f',
+        'reference' => '7d789d099cad2d73e28c649d4099f8f36bae599c',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -31,7 +31,7 @@
         'kuaimai/php-cloud-demo' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '5dac63a0eb7a0071d8e976f73fe37fa92a4f2a2f',
+            'reference' => '7d789d099cad2d73e28c649d4099f8f36bae599c',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
