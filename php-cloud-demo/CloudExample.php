@@ -47,9 +47,12 @@ use Kuaimai\Request\Esc\EscPdfPrintRequest;
 //   export KUAIMAI_APP_ID="your_app_id"
 //   export KUAIMAI_APP_SECRET="your_app_secret"
 
-$appId     = getenv('KUAIMAI_APP_ID')     ?: '你的appId';
-$appSecret = getenv('KUAIMAI_APP_SECRET') ?: '你的appSecret';
-$testSn    = '你的序列号';
+// $appId     = getenv('KUAIMAI_APP_ID')     ?: '你的appId';
+$appId     = getenv('KUAIMAI_APP_ID')     ?: '1612692487302';
+// $appSecret = getenv('KUAIMAI_APP_SECRET') ?: '你的appSecret';
+$appSecret = getenv('KUAIMAI_APP_SECRET') ?: 'aa880590cd8c4814a28599e8ab51fc01';
+// $testSn    = '你的序列号';
+$testSn    = 'KM118DW21470012';
 // ---------------------------------------------------------------------------
 // 初始化客户端
 // ---------------------------------------------------------------------------
@@ -94,7 +97,7 @@ echo $resp->toJson() . PHP_EOL;
 // ---------------------------------------------------------------------------
 $tsplTplReq = new TsplTemplatePrintRequest();
 $tsplTplReq->sn              = $testSn;
-$tsplTplReq->templateId      = 1634994453;
+$tsplTplReq->templateId      = 1634993769;
 $tsplTplReq->renderDataArray = '[{"table_test":[{"key_test":"3449394"}]}]';
 $tsplTplReq->printTimes      = 1;
 $tsplTplReq->image           = true;

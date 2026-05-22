@@ -454,8 +454,11 @@ class TemplateRenderer
         }
 
         $resized = imagecreatetruecolor($w, $h);
-        $white   = imagecolorallocate($resized, 255, 255, 255);
-        imagefill($resized, 0, 0, $white);
+        imagealphablending($resized, false);
+        imagesavealpha($resized, true);
+        $transparent = imagecolorallocatealpha($resized, 255, 255, 255, 127);
+        imagefill($resized, 0, 0, $transparent);
+        imagealphablending($resized, true);
 
         $srcW = imagesx($qrImg);
         $srcH = imagesy($qrImg);
@@ -474,6 +477,7 @@ class TemplateRenderer
 
         // Match Java/ZXing behavior: keep modules on whole pixels and center leftovers.
         imagecopyresized($resized, $qrImg, $dstX, $dstY, 0, 0, $targetW, $targetH, $srcW, $srcH);
+        imagealphablending($canvas, true);
         imagecopy($canvas, $resized, $x, $y, 0, 0, $w, $h);
     }
 
@@ -506,14 +510,20 @@ class TemplateRenderer
         }
 
         $layout = imagecreatetruecolor($w, $h);
-        $white  = imagecolorallocate($layout, 255, 255, 255);
-        imagefill($layout, 0, 0, $white);
+        imagealphablending($layout, false);
+        imagesavealpha($layout, true);
+        $transparent = imagecolorallocatealpha($layout, 255, 255, 255, 127);
+        imagefill($layout, 0, 0, $transparent);
+        imagealphablending($layout, true);
+        $white = imagecolorallocate($layout, 255, 255, 255);
 
         $barcodeTop = $textPos === 'top' ? $labelHeight : 0;
+        imagefilledrectangle($layout, 0, $barcodeTop, $w - 1, $barcodeTop + $barcodeHeight - 1, $white);
         imagecopyresized($layout, $bcImg, 0, $barcodeTop, 0, 0, $w, $barcodeHeight, imagesx($bcImg), imagesy($bcImg));
 
         if ($labelHeight > 0) {
             $labelTop = $textPos === 'top' ? 0 : $barcodeHeight;
+            imagefilledrectangle($layout, 0, $labelTop, $w - 1, $labelTop + $labelHeight - 1, $white);
             self::drawBarcodeLabel($layout, $content, $fontPath, $fontSize, $labelTop, $labelHeight);
         }
 
@@ -525,6 +535,7 @@ class TemplateRenderer
             $h,
             (float)($obj['angle'] ?? 0)
         );
+        imagealphablending($canvas, true);
         imagecopy($canvas, $finalImg, $dstX, $dstY, 0, 0, imagesx($finalImg), imagesy($finalImg));
     }
 
@@ -586,22 +597,31 @@ class TemplateRenderer
             return ['image' => $img, 'x' => $x, 'y' => $y];
         }
 
-        $white = imagecolorallocate($img, 255, 255, 255);
+        imagealphablending($img, false);
+        imagesavealpha($img, true);
+        $transparent = imagecolorallocatealpha($img, 255, 255, 255, 127);
 
         if ($angle > 85 && $angle < 95) {
-            return ['image' => imagerotate($img, 270, $white), 'x' => $x - $h, 'y' => $y];
+            $rotated = imagerotate($img, 270, $transparent);
+            imagesavealpha($rotated, true);
+            return ['image' => $rotated, 'x' => $x - $h, 'y' => $y];
         }
         if ($angle > 175 && $angle < 185) {
-            return ['image' => imagerotate($img, 180, $white), 'x' => $x - $w, 'y' => $y - $h];
+            $rotated = imagerotate($img, 180, $transparent);
+            imagesavealpha($rotated, true);
+            return ['image' => $rotated, 'x' => $x - $w, 'y' => $y - $h];
         }
         if ($angle > 265 && $angle < 275) {
-            return ['image' => imagerotate($img, 90, $white), 'x' => $x, 'y' => $y - $w];
+            $rotated = imagerotate($img, 90, $transparent);
+            imagesavealpha($rotated, true);
+            return ['image' => $rotated, 'x' => $x, 'y' => $y - $w];
         }
         if ($angle > 355) {
             return ['image' => $img, 'x' => $x, 'y' => $y];
         }
 
-        $rotated = imagerotate($img, 360 - $angle, $white);
+        $rotated = imagerotate($img, 360 - $angle, $transparent);
+        imagesavealpha($rotated, true);
         $sqrt = sqrt(($w ** 2) + ($h ** 2)) * 0.5;
         $w2 = cos(deg2rad($angle + 45)) * $sqrt;
         $h2 = sin(deg2rad($angle + 45)) * $sqrt;

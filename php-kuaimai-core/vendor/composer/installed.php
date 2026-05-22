@@ -1,8 +1,8 @@
 <?php return array(
     'root' => array(
         'name' => 'kuaimai/php-java-core',
-        'pretty_version' => '1.3.1',
-        'version' => '1.3.1.0',
+        'pretty_version' => '1.3.2',
+        'version' => '1.3.2.0',
         'reference' => null,
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
@@ -29,8 +29,8 @@
             'dev_requirement' => false,
         ),
         'kuaimai/php-java-core' => array(
-            'pretty_version' => '1.3.1',
-            'version' => '1.3.1.0',
+            'pretty_version' => '1.3.2',
+            'version' => '1.3.2.0',
             'reference' => null,
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
