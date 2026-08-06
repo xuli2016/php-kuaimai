@@ -318,11 +318,17 @@ class TemplateRenderer
     // 文字绘制 (对应 Java TsplImageUtil.writeText / drawSingleText)
     // -------------------------------------------------------------------------
 
-    private static function drawText(\GdImage $img, array $obj, array $renderData, float $rate): void
+    private static function drawText(
+        \GdImage $img,
+        array $obj,
+        array $renderData,
+        float $rate,
+        float $dotScale = 1.0
+    ): void
     {
         $scaleX   = (float)($obj['scaleX'] ?? 1);
         $width    = (float)($obj['width']  ?? 24) * $rate * $scaleX;
-        $fontSize = (int)max(8, round((float)($obj['fontSize'] ?? 12) * $rate * $scaleX));
+        $fontSize = (int)max(round(8 * $dotScale), round((float)($obj['fontSize'] ?? 12) * $rate * $scaleX));
         $drawFontSize = max(1, (int)round($fontSize * 0.75));
         $left     = (float)($obj['left']   ?? 0) * $rate;
         $top      = (float)($obj['top']    ?? 0) * $rate;
@@ -361,7 +367,14 @@ class TemplateRenderer
                 if ($reverse) {
                     $bboxFull = imagettfbbox($drawFontSize, 0, $fontPath, $line);
                     $bw = abs($bboxFull[4] - $bboxFull[0]);
-                    imagefilledrectangle($img, $x, $y - $fontSize, $x + $bw, $y + 4, $black);
+                    imagefilledrectangle(
+                        $img,
+                        $x,
+                        $y - $fontSize,
+                        $x + $bw,
+                        $y + (int)round(4 * $dotScale),
+                        $black
+                    );
                     imagettftext($img, $drawFontSize, (float)$angle, $x, $y, $white, $fontPath, $line);
                 } else {
                     imagettftext($img, $drawFontSize, (float)$angle, $x, $y, $black, $fontPath, $line);
@@ -370,7 +383,7 @@ class TemplateRenderer
                 // GD 内置字体 fallback
                 imagestring($img, 5, (int)$left, $y - $fontSize, $line, $black);
             }
-            $y += 8;  // Java 每行之间 +8 像素间距
+            $y += (int)round(8 * $dotScale);  // 203dpi +8 dot，300dpi +12 dot
         }
     }
 
@@ -401,7 +414,13 @@ class TemplateRenderer
     // 条码 / 二维码 (对应 Java TsplImageUtil.writeCode)
     // -------------------------------------------------------------------------
 
-    private static function drawCode(\GdImage $canvas, array $obj, array $renderData, float $rate): void
+    private static function drawCode(
+        \GdImage $canvas,
+        array $obj,
+        array $renderData,
+        float $rate,
+        float $dotScale = 1.0
+    ): void
     {
         $content = self::getContent($obj, $renderData);
         if (!$content) return;
@@ -418,7 +437,7 @@ class TemplateRenderer
         if ($componentType === 'qrcode') {
             self::pasteQRCode($canvas, $content, $left, $top, $width, $height);
         } else {
-            self::pasteBarcode($canvas, $obj, $content, $left, $top, $width, $height, $rate);
+            self::pasteBarcode($canvas, $obj, $content, $left, $top, $width, $height, $rate, $dotScale);
         }
     }
 
@@ -481,7 +500,17 @@ class TemplateRenderer
         imagecopy($canvas, $resized, $x, $y, 0, 0, $w, $h);
     }
 
-    private static function pasteBarcode(\GdImage $canvas, array $obj, string $content, int $x, int $y, int $w, int $h, float $rate): void
+    private static function pasteBarcode(
+        \GdImage $canvas,
+        array $obj,
+        string $content,
+        int $x,
+        int $y,
+        int $w,
+        int $h,
+        float $rate,
+        float $dotScale
+    ): void
     {
         $bcType  = strtoupper(str_replace(['-', '_'], '', $obj['barcodeType'] ?? 'CODE128'));
         $bcMap   = [
@@ -497,9 +526,9 @@ class TemplateRenderer
         ];
         $type    = $bcMap[$bcType] ?? BarcodeGeneratorPNG::TYPE_CODE_128;
         $textPos = $obj['barcodeTextPosition'] ?? 'none';
-        $fontSize = max(8, (int)round((float)($obj['fontSize'] ?? 12) * $rate));
+        $fontSize = max((int)round(8 * $dotScale), (int)round((float)($obj['fontSize'] ?? 12) * $rate));
         $fontPath = self::findFontPath($obj['fontFamily'] ?? null);
-        $labelHeight = self::barcodeLabelHeight($content, $textPos, $fontPath, $fontSize);
+        $labelHeight = self::barcodeLabelHeight($content, $textPos, $fontPath, $fontSize, $dotScale);
         $barcodeHeight = max(1, $h - $labelHeight);
 
         $gen = new BarcodeGeneratorPNG();
@@ -524,7 +553,7 @@ class TemplateRenderer
         if ($labelHeight > 0) {
             $labelTop = $textPos === 'top' ? 0 : $barcodeHeight;
             imagefilledrectangle($layout, 0, $labelTop, $w - 1, $labelTop + $labelHeight - 1, $white);
-            self::drawBarcodeLabel($layout, $content, $fontPath, $fontSize, $labelTop, $labelHeight);
+            self::drawBarcodeLabel($layout, $content, $fontPath, $fontSize, $labelTop, $labelHeight, $dotScale);
         }
 
         ['image' => $finalImg, 'x' => $dstX, 'y' => $dstY] = self::rotateCodeImage(
@@ -539,7 +568,13 @@ class TemplateRenderer
         imagecopy($canvas, $finalImg, $dstX, $dstY, 0, 0, imagesx($finalImg), imagesy($finalImg));
     }
 
-    private static function barcodeLabelHeight(string $content, string $textPos, ?string $fontPath, int $fontSize): int
+    private static function barcodeLabelHeight(
+        string $content,
+        string $textPos,
+        ?string $fontPath,
+        int $fontSize,
+        float $dotScale
+    ): int
     {
         if ($textPos === 'none' || $content === '') {
             return 0;
@@ -549,14 +584,22 @@ class TemplateRenderer
             $bbox = imagettfbbox($fontSize, 0, $fontPath, $content);
             if (is_array($bbox)) {
                 $textHeight = abs($bbox[7] - $bbox[1]);
-                return max(12, $textHeight + 6);
+                return max((int)round(12 * $dotScale), $textHeight + (int)round(6 * $dotScale));
             }
         }
 
-        return max(12, imagefontheight(5) + 4);
+        return max((int)round(12 * $dotScale), imagefontheight(5) + (int)round(4 * $dotScale));
     }
 
-    private static function drawBarcodeLabel(\GdImage $img, string $content, ?string $fontPath, int $fontSize, int $top, int $height): void
+    private static function drawBarcodeLabel(
+        \GdImage $img,
+        string $content,
+        ?string $fontPath,
+        int $fontSize,
+        int $top,
+        int $height,
+        float $dotScale
+    ): void
     {
         $black = imagecolorallocate($img, 0, 0, 0);
         $imgW  = imagesx($img);
@@ -564,7 +607,11 @@ class TemplateRenderer
         if ($fontPath && file_exists($fontPath)) {
             $drawFontSize = $fontSize;
             $bbox = imagettfbbox($drawFontSize, 0, $fontPath, $content);
-            while (is_array($bbox) && abs($bbox[4] - $bbox[0]) > max(4, $imgW - 4) && $drawFontSize > 6) {
+            $sidePadding = max(4, (int)round(4 * $dotScale));
+            $minimumFontSize = max(6, (int)round(6 * $dotScale));
+            while (is_array($bbox)
+                && abs($bbox[4] - $bbox[0]) > max($sidePadding, $imgW - $sidePadding)
+                && $drawFontSize > $minimumFontSize) {
                 $drawFontSize--;
                 $bbox = imagettfbbox($drawFontSize, 0, $fontPath, $content);
             }
@@ -693,14 +740,17 @@ class TemplateRenderer
     // 线条 (对应 Java TsplImageUtil.writeLine)
     // -------------------------------------------------------------------------
 
-    private static function drawLine(\GdImage $img, array $obj, float $rate): void
+    private static function drawLine(\GdImage $img, array $obj, float $rate, float $dotScale = 1.0): void
     {
         $scaleX      = (float)($obj['scaleX'] ?? 1);
         $left        = (float)($obj['left']   ?? 0) * $rate;
         $top         = (float)($obj['top']    ?? 0) * $rate;
         $width       = (float)($obj['width']  ?? 0) * $scaleX * $rate;
         $angle       = (float)($obj['angle']  ?? 0);
-        $strokeWidth = max(1, (int)((float)($obj['strokeWidth'] ?? 1)));
+        $rawStrokeWidth = (float)($obj['strokeWidth'] ?? 1);
+        $strokeWidth = max(1, $dotScale === 1.0
+            ? (int)$rawStrokeWidth
+            : (int)round($rawStrokeWidth * $dotScale));
         $black       = imagecolorallocate($img, 0, 0, 0);
 
         if ($angle > 5) {
@@ -712,15 +762,66 @@ class TemplateRenderer
         }
 
         imagesetthickness($img, $strokeWidth);
-        imageline($img, (int)$left, (int)$top, $x2, $y2, $black);
+        if ($dotScale > 1.0 && ($obj['lineType'] ?? '') === 'dotted') {
+            self::drawDottedLine(
+                $img,
+                (int)round($left),
+                (int)round($top),
+                $x2,
+                $y2,
+                max(1, (int)round(16 * $dotScale)),
+                max(1, (int)round(4 * $dotScale)),
+                $black
+            );
+        } else {
+            imageline($img, (int)$left, (int)$top, $x2, $y2, $black);
+        }
         imagesetthickness($img, 1);
+    }
+
+    private static function drawDottedLine(
+        \GdImage $img,
+        int $x1,
+        int $y1,
+        int $x2,
+        int $y2,
+        int $dashLength,
+        int $gapLength,
+        int $color
+    ): void {
+        $dx = $x2 - $x1;
+        $dy = $y2 - $y1;
+        $length = hypot($dx, $dy);
+        if ($length <= 0) {
+            imagesetpixel($img, $x1, $y1, $color);
+            return;
+        }
+
+        $step = $dashLength + $gapLength;
+        for ($offset = 0; $offset < $length; $offset += $step) {
+            $end = min($length, $offset + $dashLength);
+            imageline(
+                $img,
+                (int)round($x1 + $dx * $offset / $length),
+                (int)round($y1 + $dy * $offset / $length),
+                (int)round($x1 + $dx * $end / $length),
+                (int)round($y1 + $dy * $end / $length),
+                $color
+            );
+        }
     }
 
     // -------------------------------------------------------------------------
     // 矩形 / 椭圆 (对应 Java TsplImageUtil.writeRect / writeEllipse)
     // -------------------------------------------------------------------------
 
-    private static function drawRect(\GdImage $img, array $obj, float $rate, bool $oval = false): void
+    private static function drawRect(
+        \GdImage $img,
+        array $obj,
+        float $rate,
+        bool $oval = false,
+        float $dotScale = 1.0
+    ): void
     {
         $scaleX      = (float)($obj['scaleX'] ?? 1);
         $scaleY      = (float)($obj['scaleY'] ?? 1);
@@ -729,9 +830,10 @@ class TemplateRenderer
         $width       = (float)($obj['width']  ?? 0) * $scaleX * $rate;
         $height      = (float)($obj['height'] ?? 0) * $scaleY * $rate;
         $fill        = (string)($obj['fill']  ?? '');
-        $strokeWidth = max(1, (int)((float)($obj['strokeWidth'] ?? 1)));
-        $rx          = (int)((float)($obj['rx'] ?? 0));
-        $ry          = (int)((float)($obj['ry'] ?? 0));
+        $rawStrokeWidth = (float)($obj['strokeWidth'] ?? 1);
+        $strokeWidth = max(1, $dotScale === 1.0
+            ? (int)$rawStrokeWidth
+            : (int)round($rawStrokeWidth * $dotScale));
         $black       = imagecolorallocate($img, 0, 0, 0);
 
         $x1 = (int)$left;
@@ -762,6 +864,24 @@ class TemplateRenderer
      */
     public static function render(array $templateData, array $renderData): \GdImage
     {
+        return self::renderAtDpi($templateData, $renderData, 8, 1.0);
+    }
+
+    /**
+     * 300dpi 独立入口。模板仍使用原 203dpi 画布模型，直接按 12 dots/mm 渲染目标点阵。
+     */
+    public static function render300Dpi(array $templateData, array $renderData): \GdImage
+    {
+        return self::renderAtDpi($templateData, $renderData, 12, 1.5);
+    }
+
+    private static function renderAtDpi(
+        array $templateData,
+        array $renderData,
+        int $dotsPerMm,
+        float $dotScale
+    ): \GdImage
+    {
         $tagConfig    = self::parseJson($templateData['tagConfig']    ?? []);
         $templateInfo = self::parseJson($templateData['templateData'] ?? []);
 
@@ -769,16 +889,15 @@ class TemplateRenderer
         $heightMm = (float)($tagConfig['height'] ?? 100);
         $printDir = (float)($tagConfig['printDirection'] ?? 0);
 
-        // Java SDK 1.3.2: Math.round(width * 8) × Math.round(height * 8)
-        $canvasW = max(1, (int)round($widthMm * 8));
-        $canvasH = max(1, (int)round($heightMm * 8));
+        $canvasW = max(1, (int)round($widthMm * $dotsPerMm));
+        $canvasH = max(1, (int)round($heightMm * $dotsPerMm));
 
         // rate 计算（对应 Java viewportTransform）
         $viewport   = self::parseJsonArray($templateInfo['viewportTransform'] ?? []);
         $canvasZoom = (float)($viewport[0] ?? 1.0);
         $templateW  = (float)($templateInfo['width'] ?? $canvasW);
         $realW      = $canvasZoom > 0 ? $templateW / $canvasZoom : $templateW;
-        $rate       = $realW > 0 ? ($widthMm * 8) / $realW : 1.0;
+        $rate       = $realW > 0 ? ($widthMm * $dotsPerMm) / $realW : $dotScale;
 
         // Java: TYPE_3BYTE_BGR, 白色背景
         $img   = imagecreatetruecolor($canvasW, $canvasH);
@@ -792,14 +911,14 @@ class TemplateRenderer
             if (!is_array($obj)) continue;
             try {
                 match ($obj['type'] ?? '') {
-                    'textbox' => self::drawText($img, $obj, $renderData, $rate),
+                    'textbox' => self::drawText($img, $obj, $renderData, $rate, $dotScale),
                     'image'   => match ($obj['componentType'] ?? '') {
-                        'qrcode', 'barcode' => self::drawCode($img, $obj, $renderData, $rate),
+                        'qrcode', 'barcode' => self::drawCode($img, $obj, $renderData, $rate, $dotScale),
                         default             => self::drawImage($img, $obj, $renderData, $rate),
                     },
-                    'line'    => self::drawLine($img, $obj, $rate),
-                    'rect'    => self::drawRect($img, $obj, $rate, false),
-                    'ellipse' => self::drawRect($img, $obj, $rate, true),
+                    'line'    => self::drawLine($img, $obj, $rate, $dotScale),
+                    'rect'    => self::drawRect($img, $obj, $rate, false, $dotScale),
+                    'ellipse' => self::drawRect($img, $obj, $rate, true, $dotScale),
                     default   => null,
                 };
             } catch (\Throwable $e) {

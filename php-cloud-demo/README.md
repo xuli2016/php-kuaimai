@@ -224,6 +224,8 @@ $req->sn              = '打印机SN';
 $req->templateId      = 1634989639;     // 模板 ID（在开放平台创建）
 $req->renderDataArray = '[{"table_test":[{"key_test":"3449394"}]}]';  // 渲染数据
 $req->printTimes      = 1;              // 打印份数
+$req->image           = true;           // 本地渲染图片
+$req->dpi             = 300;            // 可选：203（默认）或 300
 
 // 3. 发送请求，获取响应
 $resp = $client->getAcsResponse($req);
@@ -265,6 +267,7 @@ $req->templateId      = 1634989639;
 $req->renderDataArray = '[{"table_test":[{"key_test":"3449394"}]}]';
 $req->printTimes      = 1;
 $req->image           = true;   // true=本地渲染为图片后打印（推荐），false=服务端渲染
+$req->dpi             = 300;    // 300dpi 直接按 12 dots/mm 渲染，不经过 203dpi 二次放大
 
 $resp = $client->getAcsResponse($req);
 echo $resp->toJson();
@@ -299,6 +302,7 @@ $req = new TsplImageRequest();
 $req->sn          = $testSn;
 $req->imageBase64 = $imageBase64;
 $req->printTimes  = 1;
+$req->dpi         = 300;   // 可选：203（默认）或 300
 // 可选：指定标签尺寸（毫米），不指定则从图片像素自动计算
 // $req->setWidth  = 75.0;
 // $req->setHeight = 100.0;

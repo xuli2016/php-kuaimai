@@ -295,6 +295,7 @@ $tsplTplReq->templateId = 123;
 $tsplTplReq->renderDataArray = '[{"table_test":[{"key_test":"3449394"}]}]';
 $tsplTplReq->printTimes = 1;
 $tsplTplReq->image = true;  // PHP SDK支持：先在本地渲染模板为图片再下发
+$tsplTplReq->dpi = 300;     // 可选：203（默认）或 300
 $resp = $client->getAcsResponse($tsplTplReq);
 ```
 
@@ -306,7 +307,7 @@ $resp = $client->getAcsResponse($tsplTplReq);
 | templateId | Number | 是 | 模板ID |
 | renderDataArray | String | 是 | 渲染数据，JSON数组字符串 |
 | image | Boolean | 否 | 是否先在本地渲染模板为图片再下发，PHP SDK 支持 |
-| dpi | Number | 否 | 打印分辨率 |
+| dpi | Number | 否 | 打印分辨率：203（默认）或 300；其他值返回参数错误 |
 | imei | String | 否 | KM360C 设备的 IMEI |
 | printTimes | Number | 否 | 打印份数，默认1 |
 
@@ -612,6 +613,9 @@ $tsplImgReq = new TsplImageRequest();
 $tsplImgReq->sn = 'KM118DW123';
 $tsplImgReq->imageBase64 = 'data:image/png;base64,...';
 $tsplImgReq->printTimes = 1;
+$tsplImgReq->dpi = 300;       // 可选：203（默认）或 300
+$tsplImgReq->setWidth = 75;   // 指定尺寸时，300dpi 按 12 dots/mm 生成图片点阵
+$tsplImgReq->setHeight = 100;
 $resp = $client->getAcsResponse($tsplImgReq);
 ```
 
@@ -624,7 +628,7 @@ $resp = $client->getAcsResponse($tsplImgReq);
 | setWidth | Number | 否 | 打印宽度（单位：mm） |
 | setHeight | Number | 否 | 打印高度（单位：mm） |
 | printTimes | Number | 否 | 打印份数，默认1 |
-| dpi | Number | 否 | 打印分辨率 |
+| dpi | Number | 否 | 打印分辨率：203（默认）或 300；其他值返回参数错误 |
 
 #### 错误码
 

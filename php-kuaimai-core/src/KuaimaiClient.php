@@ -38,6 +38,11 @@ use Kuaimai\Util\TsplUtil;
 
 class KuaimaiClient
 {
+    private const DPI_203 = 203;
+    private const DPI_300 = 300;
+    private const DOTS_PER_MM_203 = 8;
+    private const DOTS_PER_MM_300 = 12;
+
     private static ?KuaimaiClient $instance = null;
 
     private string $appId;
@@ -408,6 +413,11 @@ class KuaimaiClient
         if ($req->templateId === null) {
             return ResponseEnvelope::error('templateId不能为空');
         }
+        try {
+            $dpi = $this->resolveDpi($req->dpi);
+        } catch (\InvalidArgumentException $e) {
+            return ResponseEnvelope::error($e->getMessage());
+        }
         // KM360C (Cainiao) path: imei set, sn not set
         if (StringUtils::isNotBlank($imei) && StringUtils::isBlank($sn)) {
             return $this->tsplImageCainiaoPrint($req);
@@ -433,6 +443,10 @@ class KuaimaiClient
         if (StringUtils::isNotBlank($req->renderData)) {
             $p['renderData'] = $req->renderData;
         }
+        // dpi=203 时不新增签名字段，保持旧请求完全兼容。
+        if ($dpi === self::DPI_300) {
+            $p['dpi'] = $dpi;
+        }
         return $this->post('print/tsplTemplatePrint', $p);
     }
 
@@ -444,6 +458,11 @@ class KuaimaiClient
      */
     private function tsplImagePrint(TsplTemplatePrintRequest $req): ResponseEnvelope
     {
+        try {
+            $dpi = $this->resolveDpi($req->dpi);
+        } catch (\InvalidArgumentException $e) {
+            return ResponseEnvelope::error($e->getMessage());
+        }
         $templateResp = $this->getTemplate($req->templateId);
         if (!$templateResp) {
             return ResponseEnvelope::error('getTemplate 失败');
@@ -461,10 +480,13 @@ class KuaimaiClient
 
         $printTimes = $this->normalizePrintTimes($req->printTimes);
         $allBytes   = '';
+        $responses  = [];
 
         foreach ($items as $index => $renderData) {
             try {
-                $img = TemplateRenderer::render($templateData, (array)$renderData);
+                $img = $dpi === self::DPI_300
+                    ? TemplateRenderer::render300Dpi($templateData, (array)$renderData)
+                    : TemplateRenderer::render($templateData, (array)$renderData);
                 $this->dumpRenderedDebugImage($img, $req->templateId, $index);
             } catch (\Throwable $e) {
                 return ResponseEnvelope::error('模板本地渲染失败: ' . $e->getMessage());
@@ -474,17 +496,44 @@ class KuaimaiClient
             $tagConfig = json_decode($templateData['tagConfig'] ?? '{}', true) ?: [];
             $widthMm   = (float)($tagConfig['width']  ?? 75);
             $heightMm  = (float)($tagConfig['height'] ?? 100);
+            $printDirection = (float)($tagConfig['printDirection'] ?? 0);
+            if ($dpi === self::DPI_300 && in_array($printDirection, [90.0, 270.0], true)) {
+                [$widthMm, $heightMm] = [$heightMm, $widthMm];
+            }
 
             // 生成 TSPL 指令
             $chunk  = TsplUtil::crtiSize($widthMm, $heightMm);
             $chunk .= TsplUtil::crtiClear();
 
+            if ($dpi === self::DPI_300 && HexUtils::calculateImageSizeInKB($img) > 300) {
+                return ResponseEnvelope::error('图片大小不能超过300KB');
+            }
             foreach (HexUtils::tsplBitmapBytes($img, 0, 0, 3) as $bitmapChunk) {
                 $chunk .= $bitmapChunk;
             }
             $chunk .= TsplUtil::crtiPrint(1, $printTimes);
 
-            $allBytes .= $chunk;
+            if ($dpi === self::DPI_300) {
+                $tsplReq            = new TsplInstructRequest();
+                $tsplReq->sn        = $req->sn;
+                $tsplReq->instructs = base64_encode($chunk);
+                $tsplReq->prereq    = 'FFFF01';
+                $tsplReq->extra     = '0';
+                $response = $this->tsplImageWrite($tsplReq);
+                if (!$response->status) {
+                    return $response;
+                }
+                $responses[] = $response->toArray();
+            } else {
+                $allBytes .= $chunk;
+            }
+        }
+
+        if ($dpi === self::DPI_300) {
+            $response = new ResponseEnvelope();
+            $response->status = true;
+            $response->data = $responses;
+            return $response;
         }
 
         // 检查大小（Java 限制 150KB）
@@ -525,7 +574,9 @@ class KuaimaiClient
 
         foreach ($items as $index => $renderData) {
             try {
-                $img = TemplateRenderer::render($templateData, (array)$renderData);
+                $img = $req->dpi === self::DPI_300
+                    ? TemplateRenderer::render300Dpi($templateData, (array)$renderData)
+                    : TemplateRenderer::render($templateData, (array)$renderData);
                 $this->dumpRenderedDebugImage($img, $req->templateId, $index);
                 $imageBase64 = HexUtils::imageToBase64($img);
             } catch (\Throwable $e) {
@@ -653,45 +704,48 @@ class KuaimaiClient
         if (StringUtils::isBlank($req->imageBase64) && !($req->bufferedImage instanceof \GdImage)) {
             return ResponseEnvelope::error('入参不能为空');
         }
+        try {
+            $dpi = $this->resolveDpi($req->dpi);
+        } catch (\InvalidArgumentException $e) {
+            return ResponseEnvelope::error($e->getMessage());
+        }
 
         // Resolve image
         $img = ($req->bufferedImage instanceof \GdImage)
             ? $req->bufferedImage
             : HexUtils::base64ToImage($req->imageBase64);
 
-        $dpi     = $req->dpi >= 300 ? 300 : 203;
-        $pxPerMm = $dpi >= 300 ? 11.8 : 8.0;
+        $dotsPerMm = $dpi === self::DPI_300 ? self::DOTS_PER_MM_300 : self::DOTS_PER_MM_203;
 
         $srcW = imagesx($img);
         $srcH = imagesy($img);
 
         // Determine label size in mm and target pixel dimensions — matches Java logic
         if ($req->setWidth > 0 && $req->setHeight > 0) {
-            if ($dpi >= 300) {
-                $targetW = (int)(floor($req->setWidth  * 11.8 / 8) * 8);
-                $targetH = (int)(floor($req->setHeight * 11.8 / 8) * 8);
+            if ($dpi === self::DPI_300) {
+                $targetW = max(1, (int)round($req->setWidth * $dotsPerMm));
+                $targetH = max(1, (int)round($req->setHeight * $dotsPerMm));
+                $labelW = $req->setWidth;
+                $labelH = $req->setHeight;
             } else {
-                $targetW = (int)($req->setWidth  * 8);
-                $targetH = (int)($req->setHeight * 8);
+                // 保持原 203dpi 的取整行为。
+                $targetW = max(1, (int)($req->setWidth * self::DOTS_PER_MM_203));
+                $targetH = max(1, (int)($req->setHeight * self::DOTS_PER_MM_203));
+                $labelW = (int)$req->setWidth;
+                $labelH = (int)$req->setHeight;
             }
-            $labelW = (int)$req->setWidth;
-            $labelH = (int)$req->setHeight;
         } else {
-            if ($dpi >= 300) {
-                $labelW  = (int)ceil($srcW / 11.8);
-                $labelH  = (int)ceil($srcH / 11.8);
-                $targetW = $srcW;
-                $targetH = $srcH;
-            } else {
-                $labelW  = (int)ceil($srcW / 8);
-                $labelH  = (int)ceil($srcH / 8);
-                $targetW = $srcW;
-                $targetH = $srcH;
-            }
+            $labelW  = (int)ceil($srcW / $dotsPerMm);
+            $labelH  = (int)ceil($srcH / $dotsPerMm);
+            $targetW = $srcW;
+            $targetH = $srcH;
         }
 
         if ($targetW !== $srcW || $targetH !== $srcH) {
             $img = HexUtils::resize($img, $targetW, $targetH);
+        }
+        if ($dpi === self::DPI_300 && HexUtils::calculateImageSizeInKB($img) > 300) {
+            return ResponseEnvelope::error('图片大小不能超过300KB');
         }
 
         // Build TSPL instruction bytes
@@ -721,7 +775,11 @@ class KuaimaiClient
         if (StringUtils::isBlank($req->sn)) {
             return ResponseEnvelope::error('sn入参不能为空');
         }
-        $dpi = $req->dpi >= 300 ? 300 : 203;
+        try {
+            $dpi = $this->resolveDpi($req->dpi);
+        } catch (\InvalidArgumentException $e) {
+            return ResponseEnvelope::error($e->getMessage());
+        }
         try {
             $img = PdfUtils::convertPdfToImage($req->filePath, $dpi);
             $tsplReq              = new TsplImageRequest();
@@ -745,7 +803,11 @@ class KuaimaiClient
         if (StringUtils::isBlank($req->sn)) {
             return ResponseEnvelope::error('sn入参不能为空');
         }
-        $dpi = $req->dpi >= 300 ? 300 : 203;
+        try {
+            $dpi = $this->resolveDpi($req->dpi);
+        } catch (\InvalidArgumentException $e) {
+            return ResponseEnvelope::error($e->getMessage());
+        }
         try {
             $images = PdfUtils::convertPdfsToImage($req->filePath, $dpi);
             $results = [];
@@ -883,6 +945,14 @@ class KuaimaiClient
     // -------------------------------------------------------------------------
     // Internal helpers
     // -------------------------------------------------------------------------
+
+    private function resolveDpi(int $dpi): int
+    {
+        if ($dpi === self::DPI_203 || $dpi === self::DPI_300) {
+            return $dpi;
+        }
+        throw new \InvalidArgumentException('dpi仅支持203或300');
+    }
 
     private function imageToBmpBytes(\GdImage $img): string
     {

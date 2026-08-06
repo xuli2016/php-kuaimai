@@ -104,8 +104,8 @@ class HexUtils
 
         $threshold = self::getThreshold($img);
 
-        // Decide chunking (same calc as Java calculateImageSizeInKB / 50KB)
-        $totalKB      = ($w * $h) / (8 * 1024);
+        // 每行按完整字节补齐；高度不需要做 8-dot 对齐。
+        $totalKB      = self::calculateImageSizeInKB($img);
         $numChunks    = $totalKB > 50 ? (int)ceil($totalKB / 50) : 1;
         $rowsPerChunk = $numChunks > 1 ? (int)floor($h / $numChunks) : $h;
 
@@ -158,6 +158,11 @@ class HexUtils
         }
 
         return $instructions;
+    }
+
+    public static function calculateImageSizeInKB(\GdImage $img): float
+    {
+        return (ceil(imagesx($img) / 8.0) * imagesy($img)) / 1024.0;
     }
 
     // -------------------------------------------------------------------------
