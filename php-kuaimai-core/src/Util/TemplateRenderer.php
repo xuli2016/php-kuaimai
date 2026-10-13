@@ -18,6 +18,10 @@ class TemplateRenderer
 
     /** @var array<string,string|null> */
     private static array $fontCache = [];
+    /** @var array<string,string|null> */
+    private static array $boldFontCache = [];
+    /** @var array<string,string|null> */
+    private static array $italicFontCache = [];
 
     private static array $fontDirs = [];
     /** @var array<string,string> */
@@ -258,6 +262,105 @@ class TemplateRenderer
         return null;
     }
 
+    /** Find a bold face of the resolved font; null means synthetic bold is needed. */
+    private static function findBoldFontPath(?string $fontPath): ?string
+    {
+        if ($fontPath === null) {
+            return null;
+        }
+        if (array_key_exists($fontPath, self::$boldFontCache)) {
+            return self::$boldFontCache[$fontPath];
+        }
+
+        $stem = pathinfo($fontPath, PATHINFO_FILENAME);
+        $key = self::normalizeFontKey($stem);
+        // Avoid applying synthetic bold again when an explicit bold font is supplied.
+        if (preg_match('/(?:bold(?:italic|oblique)?|bd)$/i', $key)
+            || in_array($key, ['arialbi', 'timesbi', 'courbi', 'verdanab', 'verdanaz',
+                'calibrib', 'calibriz', 'cambriab', 'cambriaz', 'consolab', 'consolaz', 'segoeuib', 'segoeuiz'], true)) {
+            return self::$boldFontCache[$fontPath] = $fontPath;
+        }
+
+        $base = preg_replace('/[\s_-]*(?:regular|normal|book|roman)$/i', '', $stem) ?? $stem;
+        $names = [$base . ' Bold', $base . '-Bold', $base . 'Bold', $base . 'bd', $base . 'b'];
+        $extensions = array_unique([pathinfo($fontPath, PATHINFO_EXTENSION), 'ttf', 'ttc', 'otf', 'otc']);
+        $fontIndex = self::getFontIndex();
+        foreach ($names as $name) {
+            // Explicit font paths may live outside the configured font directories.
+            foreach ($extensions as $extension) {
+                $candidate = dirname($fontPath) . DIRECTORY_SEPARATOR . $name . '.' . $extension;
+                if (is_file($candidate)) {
+                    return self::$boldFontCache[$fontPath] = $candidate;
+                }
+            }
+            $normalized = self::normalizeFontKey($name);
+            if (isset($fontIndex[$normalized])) {
+                return self::$boldFontCache[$fontPath] = $fontIndex[$normalized];
+            }
+        }
+
+        return self::$boldFontCache[$fontPath] = null;
+    }
+
+    private static function isBoldFontWeight(mixed $fontWeight): bool
+    {
+        $weight = strtolower(trim((string)$fontWeight));
+        return in_array($weight, ['bold', 'bolder'], true)
+            || (is_numeric($weight) && (float)$weight >= 600);
+    }
+
+    /** Keep the resolved family/weight when selecting an italic face. */
+    private static function findItalicFontPath(?string $fontPath): ?string
+    {
+        if ($fontPath === null) {
+            return null;
+        }
+        if (array_key_exists($fontPath, self::$italicFontCache)) {
+            return self::$italicFontCache[$fontPath];
+        }
+        $stem = pathinfo($fontPath, PATHINFO_FILENAME);
+        $key = self::normalizeFontKey($stem);
+        if (preg_match('/(?:italic|oblique)$/i', $key)
+            || in_array($key, ['ariali', 'arialbi', 'timesi', 'timesbi', 'couri', 'courbi',
+                'verdanai', 'verdanaz', 'calibrii', 'calibriz', 'cambriai', 'cambriaz',
+                'consolai', 'consolaz', 'segoeuii', 'segoeuiz'], true)) {
+            return self::$italicFontCache[$fontPath] = $fontPath;
+        }
+
+        $base = preg_replace('/[\s_-]*(?:regular|normal|book|roman)$/i', '', $stem) ?? $stem;
+        $boldBase = preg_replace('/[\s_-]*bold$/i', '', $base) ?? $base;
+        $names = [$base . ' Italic', $base . '-Italic', $base . 'Italic',
+            $base . ' Oblique', $base . '-Oblique', $base . 'Oblique'];
+        if ($boldBase !== $base) {
+            $names = array_merge($names, [$boldBase . ' Bold Italic', $boldBase . '-BoldItalic',
+                $boldBase . 'BoldItalic', $boldBase . ' Bold Oblique', $boldBase . '-BoldOblique']);
+        }
+        $windowsAliases = [
+            'arial' => 'ariali', 'arialbd' => 'arialbi', 'times' => 'timesi', 'timesbd' => 'timesbi',
+            'cour' => 'couri', 'courbd' => 'courbi', 'verdana' => 'verdanai', 'verdanab' => 'verdanaz',
+            'calibri' => 'calibrii', 'calibrib' => 'calibriz', 'cambria' => 'cambriai', 'cambriab' => 'cambriaz',
+            'consola' => 'consolai', 'consolab' => 'consolaz', 'segoeui' => 'segoeuii', 'segoeuib' => 'segoeuiz',
+        ];
+        if (isset($windowsAliases[$key])) {
+            $names[] = $windowsAliases[$key];
+        }
+        $extensions = array_unique([pathinfo($fontPath, PATHINFO_EXTENSION), 'ttf', 'ttc', 'otf', 'otc']);
+        $fontIndex = self::getFontIndex();
+        foreach ($names as $name) {
+            foreach ($extensions as $extension) {
+                $candidate = dirname($fontPath) . DIRECTORY_SEPARATOR . $name . '.' . $extension;
+                if (is_file($candidate)) {
+                    return self::$italicFontCache[$fontPath] = $candidate;
+                }
+            }
+            $normalized = self::normalizeFontKey($name);
+            if (isset($fontIndex[$normalized])) {
+                return self::$italicFontCache[$fontPath] = $fontIndex[$normalized];
+            }
+        }
+        return self::$italicFontCache[$fontPath] = null;
+    }
+
     private static function logRenderError(string $stage, \Throwable $e, array $meta = []): void
     {
         $json = $meta ? json_encode($meta, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) : '{}';
@@ -339,15 +442,31 @@ class TemplateRenderer
         $fontFamily   = $obj['fontFamily']  ?? null;
         $textAlign    = $obj['textAlign']   ?? 'left';
         $maxRows      = isset($obj['kmTextboxMaxRows']) ? (int)$obj['kmTextboxMaxRows'] : 0;
-        $reverse      = ($obj['backgroundColor'] ?? '') === '#000';
+        $reverse      = in_array(strtolower(trim((string)($obj['backgroundColor'] ?? ''))), ['#000', '#000000'], true);
+        $isItalic     = in_array(strtolower(trim((string)$fontStyle)), ['italic', 'oblique'], true);
+        $underline    = (bool)($obj['underline'] ?? false);
+        $lineThrough  = (bool)($obj['linethrough'] ?? false);
 
         $content  = self::getContent($obj, $renderData);
         $fontPath = self::findFontPath($fontFamily);
+        $isBold = self::isBoldFontWeight($fontWeight);
+        $boldFontPath = $isBold ? self::findBoldFontPath($fontPath) : null;
+        $fontPath = $boldFontPath ?? $fontPath;
+        $italicFontPath = $isItalic ? self::findItalicFontPath($fontPath) : null;
+        $fontPath = $italicFontPath ?? $fontPath;
+        // Java Font.ITALIC also slants fonts without an italic face (common for CJK).
+        $italicShear = $isItalic && $italicFontPath === null ? 0.2 : 0.0;
+        // GD has no font-weight parameter. Thicken fonts without a bold face along
+        // the text baseline, scaling the extra dots with the rendered font size.
+        $boldOffset = $isBold && $boldFontPath === null ? max(1, (int)round($fontSize / 24)) : 0;
         $black    = imagecolorallocate($img, 0, 0, 0);
-        $white    = imagecolorallocate($img, 255, 255, 255);
 
         // 换行
-        $lines = self::wrapLines($content, $fontPath, $drawFontSize, (int)$width);
+        $wrapWidth = (int)$width;
+        if ($wrapWidth > 0) {
+            $wrapWidth = max(1, $wrapWidth - $boldOffset);
+        }
+        $lines = self::wrapLines($content, $fontPath, $drawFontSize, $wrapWidth, $italicShear);
         if ($maxRows > 0) {
             $lines = array_slice($lines, 0, $maxRows);
         }
@@ -356,38 +475,162 @@ class TemplateRenderer
         foreach ($lines as $line) {
             $y += $fontSize;
 
-            if ($fontPath && file_exists($fontPath)) {
+            $hasFont = $fontPath && file_exists($fontPath);
+            if ($hasFont) {
                 $bbox  = imagettfbbox($drawFontSize, 0, $fontPath, $line);
-                $textW = abs($bbox[4] - $bbox[0]);
+                $textW = abs($bbox[4] - $bbox[0]) + $boldOffset
+                    + (int)ceil((max($bbox[1], $bbox[3], $bbox[5], $bbox[7]) - min($bbox[1], $bbox[3], $bbox[5], $bbox[7])) * $italicShear);
                 $x = match ($textAlign) {
                     'center' => (int)($left + ($width - $textW) / 2),
                     'right'  => (int)($left + $width - $textW),
                     default  => (int)$left,
                 };
-                if ($reverse) {
-                    $bboxFull = imagettfbbox($drawFontSize, 0, $fontPath, $line);
-                    $bw = abs($bboxFull[4] - $bboxFull[0]);
-                    imagefilledrectangle(
-                        $img,
-                        $x,
-                        $y - $fontSize,
-                        $x + $bw,
-                        $y + (int)round(4 * $dotScale),
-                        $black
-                    );
-                    imagettftext($img, $drawFontSize, (float)$angle, $x, $y, $white, $fontPath, $line);
-                } else {
-                    imagettftext($img, $drawFontSize, (float)$angle, $x, $y, $black, $fontPath, $line);
-                }
+            } else {
+                $textW = imagefontwidth(5) * strlen($line) + $boldOffset;
+                $x = (int)$left;
+            }
+            if ($isItalic || $underline || $lineThrough || $reverse) {
+                self::drawStyledTextLine($img, $hasFont ? $fontPath : null, $line, $drawFontSize,
+                    $fontSize, $x, $y, $textW, $angle, $boldOffset, $italicShear,
+                    $underline, $lineThrough, $reverse, $dotScale);
+            } elseif ($hasFont) {
+                self::drawTextLine($img, $drawFontSize, $angle, $x, $y, $black, $fontPath, $line, $boldOffset);
             } else {
                 // GD 内置字体 fallback
-                imagestring($img, 5, (int)$left, $y - $fontSize, $line, $black);
+                for ($offset = 0; $offset <= $boldOffset; $offset++) {
+                    imagestring($img, 5, (int)$left + $offset, $y - $fontSize, $line, $black);
+                }
             }
             $y += (int)round(8 * $dotScale);  // 203dpi +8 dot，300dpi +12 dot
         }
     }
 
-    private static function wrapLines(string $text, ?string $fontPath, int $fontSize, int $maxWidth): array
+    private static function drawTextLine(
+        \GdImage $img,
+        int $fontSize,
+        float $angle,
+        int $x,
+        int $y,
+        int $color,
+        string $fontPath,
+        string $line,
+        int $boldOffset
+    ): void {
+        $radians = deg2rad($angle);
+        for ($offset = 0; $offset <= $boldOffset; $offset++) {
+            imagettftext(
+                $img,
+                $fontSize,
+                $angle,
+                $x + (int)round($offset * cos($radians)),
+                $y - (int)round($offset * sin($radians)),
+                $color,
+                $fontPath,
+                $line
+            );
+        }
+    }
+
+    /**
+     * Draw styles on one local layer, then rotate text, decorations and reverse
+     * background together, as Java MultilingualTextLayout.draw() does.
+     */
+    private static function drawStyledTextLine(
+        \GdImage $img,
+        ?string $fontPath,
+        string $line,
+        int $drawFontSize,
+        int $fontSize,
+        int $x,
+        int $y,
+        int $textWidth,
+        float $angle,
+        int $boldOffset,
+        float $italicShear,
+        bool $underline,
+        bool $lineThrough,
+        bool $reverse,
+        float $dotScale
+    ): void {
+        // Java's empty TextLayout does not draw a background or decoration.
+        if ($line === '') {
+            return;
+        }
+        $bbox = $fontPath ? imagettfbbox($drawFontSize, 0, $fontPath, $line)
+            : [0, 0, $textWidth, 0, $textWidth, -$fontSize, 0, -$fontSize];
+        $thickness = max(1, (int)round($fontSize / 24));
+        $underlineY = max(1, (int)round($fontSize * 0.08));
+        $padding = max(1, (int)round($dotScale));
+        $bottom = max((int)round(4 * $dotScale), max($bbox[1], $bbox[3], $bbox[5], $bbox[7]));
+        if ($underline) {
+            $bottom = max($bottom, $underlineY + $thickness);
+        }
+        $top = min(-$fontSize, min($bbox[1], $bbox[3], $bbox[5], $bbox[7]));
+        $left = min(0, min($bbox[0], $bbox[2], $bbox[4], $bbox[6])) - (int)ceil($bottom * $italicShear) - $padding;
+        $right = max($textWidth, max($bbox[0], $bbox[2], $bbox[4], $bbox[6]) + $boldOffset + (int)ceil(-$top * $italicShear)) + $padding;
+        $top -= $padding;
+        $bottom += $padding;
+        $width = max(1, $right - $left + 1);
+        $height = max(1, $bottom - $top + 1);
+        $baselineX = -$left;
+        $baselineY = -$top;
+
+        $glyphs = self::transparentTextLayer($width, $height);
+        $ink = $reverse ? imagecolorallocate($glyphs, 255, 255, 255) : imagecolorallocate($glyphs, 0, 0, 0);
+        if ($fontPath) {
+            self::drawTextLine($glyphs, $drawFontSize, 0, $baselineX, $baselineY, $ink, $fontPath, $line, $boldOffset);
+        } else {
+            for ($offset = 0; $offset <= $boldOffset; $offset++) {
+                imagestring($glyphs, 5, $baselineX + $offset, $baselineY - $fontSize, $line, $ink);
+            }
+        }
+        $layer = self::transparentTextLayer($width, $height);
+        if ($reverse) {
+            imagefilledrectangle($layer, 0, 0, $width - 1, $height - 1, imagecolorallocate($layer, 0, 0, 0));
+        }
+        if ($italicShear > 0) {
+            for ($row = 0; $row < $height; $row++) {
+                $offset = (int)round(($baselineY - $row) * $italicShear);
+                imagecopy($layer, $glyphs, $offset, $row, 0, $row, $width, 1);
+            }
+        } else {
+            imagecopy($layer, $glyphs, 0, 0, 0, 0, $width, $height);
+        }
+        $decorationColor = $reverse ? imagecolorallocate($layer, 255, 255, 255) : imagecolorallocate($layer, 0, 0, 0);
+        foreach ([$underline ? $underlineY : null, $lineThrough ? -(int)round($fontSize * 0.3) : null] as $offset) {
+            if ($offset !== null && $textWidth > 0) {
+                imagefilledrectangle($layer, $baselineX, $baselineY + $offset,
+                    $baselineX + $textWidth - 1, $baselineY + $offset + $thickness - 1, $decorationColor);
+            }
+        }
+
+        if (fmod($angle, 360.0) !== 0.0) {
+            $transparent = imagecolorallocatealpha($layer, 255, 255, 255, 127);
+            $rotated = imagerotate($layer, $angle, $transparent);
+            if ($rotated === false) {
+                throw new \RuntimeException('文字样式旋转失败');
+            }
+            $radians = deg2rad($angle);
+            $dx = $baselineX - ($width - 1) / 2;
+            $dy = $baselineY - ($height - 1) / 2;
+            $baselineX = (int)round((imagesx($rotated) - 1) / 2 + $dx * cos($radians) + $dy * sin($radians));
+            $baselineY = (int)round((imagesy($rotated) - 1) / 2 - $dx * sin($radians) + $dy * cos($radians));
+            $layer = $rotated;
+        }
+        imagecopy($img, $layer, $x - $baselineX, $y - $baselineY, 0, 0, imagesx($layer), imagesy($layer));
+    }
+
+    private static function transparentTextLayer(int $width, int $height): \GdImage
+    {
+        $layer = imagecreatetruecolor($width, $height);
+        imagealphablending($layer, false);
+        imagefill($layer, 0, 0, imagecolorallocatealpha($layer, 255, 255, 255, 127));
+        imagesavealpha($layer, true);
+        imagealphablending($layer, true);
+        return $layer;
+    }
+
+    private static function wrapLines(string $text, ?string $fontPath, int $fontSize, int $maxWidth, float $italicShear = 0.0): array
     {
         if (!$text) return [''];
         if (!$fontPath || !file_exists($fontPath) || $maxWidth <= 0) return [$text];
@@ -398,7 +641,9 @@ class TemplateRenderer
             foreach (mb_str_split($para) as $ch) {
                 $test = $cur . $ch;
                 $bbox = imagettfbbox($fontSize, 0, $fontPath, $test);
-                if ($cur !== '' && abs($bbox[4] - $bbox[0]) > $maxWidth) {
+                $textWidth = abs($bbox[4] - $bbox[0])
+                    + (int)ceil((max($bbox[1], $bbox[3], $bbox[5], $bbox[7]) - min($bbox[1], $bbox[3], $bbox[5], $bbox[7])) * $italicShear);
+                if ($cur !== '' && $textWidth > $maxWidth) {
                     $lines[] = $cur;
                     $cur     = $ch;
                 } else {
