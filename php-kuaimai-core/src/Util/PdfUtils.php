@@ -92,13 +92,11 @@ class PdfUtils
                 '安装方式：' . PHP_EOL .
                 '  CentOS: yum install -y ghostscript' . PHP_EOL .
                 '  Ubuntu: apt-get install -y ghostscript' . PHP_EOL .
-                '  macOS:  brew install ghostscript'
+                '  macOS:  brew install ghostscript' . PHP_EOL .
+                '  Windows: 安装 Ghostscript，使用 bin 目录下的 gswin64c.exe / gswin32c.exe。' . PHP_EOL .
+                '已安装时可设置环境变量 KUAIMAI_GS_PATH 为命令行程序的完整路径。'
             );
         }
-
-        // 先获取 PDF 总页数
-        $pageCount = self::getPdfPageCount($gsPath, $filePath);
-        $limit     = ($maxPages > 0) ? min($maxPages, $pageCount) : $pageCount;
 
         $tmpDir = sys_get_temp_dir() . '/kuaimai_pdf_' . uniqid();
         if (!mkdir($tmpDir, 0777, true)) {
@@ -108,28 +106,28 @@ class PdfUtils
         try {
             $outPattern = $tmpDir . '/page-%03d.png';
 
-            // Ghostscript: 将 PDF 渲染为 PNG
-            $cmd = sprintf(
-                '%s -dNOPAUSE -dBATCH -dSAFER -sDEVICE=png16m -r%d -dFirstPage=1 -dLastPage=%d -sOutputFile=%s %s 2>&1',
-                escapeshellarg($gsPath),
-                $dpi,
-                $limit,
-                escapeshellarg($outPattern),
-                escapeshellarg($filePath)
-            );
-            exec($cmd, $output, $returnCode);
-
-            if ($returnCode !== 0) {
-                throw new \RuntimeException('Ghostscript 执行失败 (code=' . $returnCode . '): ' . implode("\n", $output));
+            // 直接传递参数，避免 Windows shell 破坏空格路径及 %03d 输出占位符。
+            $command = [
+                $gsPath, '-q', '-dNOPAUSE', '-dBATCH', '-dSAFER', '-sDEVICE=png16m',
+                '-r' . $dpi, '-dFirstPage=1',
+            ];
+            if ($maxPages > 0) {
+                $command[] = '-dLastPage=' . $maxPages;
             }
+            $command[] = '-sOutputFile=' . $outPattern;
+            $command[] = '-f';
+            $command[] = realpath($filePath);
+            self::runGhostscript($command, $tmpDir . '/ghostscript.log');
 
-            // 读取生成的 PNG 文件
+            // 不预先查询页数，让 Ghostscript 在文档末尾自然结束。
+            $pngFiles = glob($tmpDir . '/page-*.png') ?: [];
+            natsort($pngFiles);
+            if (empty($pngFiles)) {
+                throw new \RuntimeException('PDF 转换图片失败：未生成任何图片');
+            }
             $images = [];
-            for ($i = 1; $i <= $limit; $i++) {
-                $pngFile = sprintf('%s/page-%03d.png', $tmpDir, $i);
-                if (!file_exists($pngFile)) {
-                    break;
-                }
+            foreach (array_values($pngFiles) as $index => $pngFile) {
+                $i = $index + 1;
                 $gdImage = imagecreatefrompng($pngFile);
                 if ($gdImage === false) {
                     throw new \RuntimeException("PDF 第 {$i} 页 PNG 加载失败");
@@ -141,39 +139,81 @@ class PdfUtils
             return $images;
         } finally {
             // 清理临时目录
+            foreach (glob($tmpDir . '/*') ?: [] as $tmpFile) {
+                @unlink($tmpFile);
+            }
             @rmdir($tmpDir);
         }
     }
 
-    private static function getPdfPageCount(string $gsPath, string $filePath): int
+    /** @param string[] $command */
+    private static function runGhostscript(array $command, string $logFile): void
     {
-        $cmd = sprintf(
-            '%s -q -dNODISPLAY -c "(%s) (r) file runpdfbegin pdfpagecount = quit" 2>&1',
-            escapeshellarg($gsPath),
-            str_replace(['(', ')'], ['\\(', '\\)'], $filePath)
-        );
-        exec($cmd, $output, $returnCode);
-
-        if ($returnCode === 0 && !empty($output)) {
-            $count = (int)trim($output[0]);
-            if ($count > 0) {
-                return $count;
-            }
+        if (!function_exists('proc_open')) {
+            throw new \RuntimeException('Ghostscript 转换需要 proc_open，请检查 PHP 的 disable_functions 配置');
         }
 
-        // fallback: 假设至少 1 页，让 gs 渲染时自然截止
-        return 100;
+        // 输出到文件，避免多页文档的 stdout/stderr 管道缓冲区阻塞。
+        $process = proc_open($command, [
+            0 => ['pipe', 'r'],
+            1 => ['file', $logFile, 'w'],
+            2 => ['redirect', 1],
+        ], $pipes, null, null, ['bypass_shell' => true]);
+        if (!is_resource($process)) {
+            throw new \RuntimeException('无法启动 Ghostscript，请检查程序路径和 PHP 服务账号的执行权限');
+        }
+        fclose($pipes[0]);
+        $returnCode = proc_close($process);
+        if ($returnCode !== 0) {
+            $output = file_get_contents($logFile);
+            throw new \RuntimeException('Ghostscript 执行失败 (code=' . $returnCode . '): ' . $output);
+        }
     }
 
     private static function findGhostscript(): ?string
     {
-        foreach (['gs', '/usr/bin/gs', '/usr/local/bin/gs', '/opt/homebrew/bin/gs'] as $path) {
-            $fullPath = trim(shell_exec('which ' . escapeshellarg($path) . ' 2>/dev/null') ?? '');
-            if ($fullPath !== '' && is_executable($fullPath)) {
-                return $fullPath;
+        $configuredPath = getenv('KUAIMAI_GS_PATH');
+        if ($configuredPath !== false && trim($configuredPath) !== '') {
+            $configuredPath = trim($configuredPath, " \t\n\r\0\x0B\"");
+            if (is_file($configuredPath) && is_executable($configuredPath)) {
+                return $configuredPath;
             }
-            if ($path !== 'gs' && is_executable($path)) {
-                return $path;
+            throw new \RuntimeException('KUAIMAI_GS_PATH 指定的 Ghostscript 程序不存在或不可执行: ' . $configuredPath);
+        }
+
+        $windows = PHP_OS_FAMILY === 'Windows';
+        $names = $windows ? ['gswin64c.exe', 'gswin32c.exe', 'gs.exe'] : ['gs'];
+        $directories = explode(PATH_SEPARATOR, getenv('PATH') ?: '');
+        if (!$windows) {
+            $directories = array_merge($directories, ['/usr/bin', '/usr/local/bin', '/opt/homebrew/bin']);
+        }
+        foreach ($directories as $directory) {
+            $directory = trim($directory, " \t\n\r\0\x0B\"");
+            if ($directory === '') {
+                continue;
+            }
+            foreach ($names as $name) {
+                $path = $directory . '/' . $name;
+                if (is_file($path) && is_executable($path)) {
+                    return $path;
+                }
+            }
+        }
+
+        // Windows 安装器通常不会为 PHP 服务进程设置 PATH，补充扫描默认安装目录。
+        if ($windows) {
+            $roots = [getenv('ProgramW6432'), getenv('ProgramFiles'), getenv('ProgramFiles(x86)')];
+            foreach (array_unique(array_filter($roots)) as $root) {
+                $versions = glob(str_replace('\\', '/', $root) . '/gs/gs*', GLOB_ONLYDIR) ?: [];
+                usort($versions, 'strnatcasecmp');
+                foreach (array_reverse($versions) as $directory) {
+                    foreach ($names as $name) {
+                        $path = $directory . '/bin/' . $name;
+                        if (is_file($path) && is_executable($path)) {
+                            return $path;
+                        }
+                    }
+                }
             }
         }
         return null;

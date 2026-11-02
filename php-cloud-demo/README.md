@@ -81,6 +81,24 @@ systemctl restart php-fpm
 brew install ghostscript
 ```
 
+#### Windows
+
+安装 Ghostscript 后，SDK 会查找 PATH 中的 `gswin64c.exe` / `gswin32c.exe`，以及 `Program Files/gs/gs*/bin` 默认安装目录。请使用带 `c` 的命令行程序，打开 Ghostscript 图形窗口不能确认 PHP 服务能够调用它。
+
+非默认安装位置或 PHP 服务无法读取 PATH 时，可在调用 PDF 打印前指定完整路径（版本号按实际安装目录修改）：
+
+```php
+putenv('KUAIMAI_GS_PATH=C:/Program Files/gs/gs10.08.0/bin/gswin64c.exe');
+```
+
+也可以为 PHP 服务配置同名环境变量，配置后重启相应的 PHP / Apache / IIS 服务。服务账号需要有执行 Ghostscript、读取 PDF 和写入临时目录的权限。命令行转换需要 PHP 允许使用 `proc_open`。
+
+在 Windows CMD 中验证命令行程序：
+
+```bat
+"C:\Program Files\gs\gs10.08.0\bin\gswin64c.exe" --version
+```
+
 #### 验证安装
 
 ```bash
@@ -477,8 +495,10 @@ PDF 打印功能需要 Ghostscript，参考上方「1.4 服务器依赖安装」
 安装后验证：
 
 ```bash
-gs --version    # 应输出版本号，如 10.02.1
+gs --version    # 应输出版本号
 ```
+
+Windows 请按上方「Windows」说明验证 `gswin64c.exe`。已经安装仍提示未找到时，检查 **PHP 服务进程**的 PATH，或通过 `KUAIMAI_GS_PATH` 指定完整路径；终端能运行不代表 Web 服务进程也能找到。若提示 `proc_open` 不可用，请检查 Web 服务所用 php.ini 的 `disable_functions` 配置。
 
 ### Q4: 报错 "本地网络不通，请检查网络连接"
 
